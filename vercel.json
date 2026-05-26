@@ -1,26 +1,15 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
-    }
-  ],
-  "routes": [
-    { "src": "/static/(.*)", "dest": "api/index.py" },
-    { "src": "/(.*)", "dest": "api/index.py" }
-  ],
-  "env": {
-    "VERCEL": "1",
-    "PKI_NO_SCHEDULER": "1"
-  },
   "functions": {
     "api/index.py": {
       "maxDuration": 30
     }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index.py" }
+  ],
+  "env": {
+    "VERCEL": "1",
+    "PKI_NO_SCHEDULER": "1"
   },
   "crons": [
     {
