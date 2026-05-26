@@ -179,8 +179,17 @@ class NetworkScanner:
         workers: int = SCAN_WORKERS,
         engine: str = 'auto',
     ) -> List[ScanResult]:
+        # Serverless: never try to shell out to nmap — fall back to socket.
+        from .config import IS_SERVERLESS
         if engine == 'auto':
-            engine = 'nmap' if nmap is not None else 'socket'
+            if nmap is not None and not IS_SERVERLESS:
+                try:
+                    nmap.PortScanner()  # probes whether the binary is available
+                    engine = 'nmap'
+                except Exception:
+                    engine = 'socket'
+            else:
+                engine = 'socket'
         start_port = max(0, int(start_port))
         end_port = min(65535, int(end_port))
         if engine == 'socket' and (end_port - start_port) > SCAN_DEMO_LIMIT:

@@ -247,8 +247,13 @@ def api_threat_score(algorithm: str, key_size: int):
 # -- bootstrap ----------------------------------------------------------------
 
 def _start_background():
-    if os.getenv('PKI_NO_SCHEDULER') != '1':
-        scheduler.start()
+    # Skip the scheduler when running serverless (Vercel / Lambda) — there
+    # are no long-lived threads in those runtimes; trigger cycles via the
+    # /actions/run-agent endpoint (e.g. Vercel Cron) instead.
+    from pki_agent.config import IS_SERVERLESS
+    if IS_SERVERLESS or os.getenv('PKI_NO_SCHEDULER') == '1':
+        return
+    scheduler.start()
 
 
 _start_background()
