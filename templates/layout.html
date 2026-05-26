@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}PKI Agentic AI{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="aurora">
+        <div class="blob blob-cyan"></div>
+        <div class="blob blob-violet"></div>
+        <div class="blob blob-rose"></div>
+    </div>
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">
+                <span class="brand-orb"></span>
+                <span class="brand-orb brand-orb--alt"></span>
+            </div>
+            <div>
+                <h1>PKI<span>Agentic</span></h1>
+                <p>Certificate Lifecycle &middot; Quantum Ready</p>
+            </div>
+        </div>
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                Dashboard
+            </a>
+            <a href="{{ url_for('certificates') }}" class="{% if request.endpoint == 'certificates' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v10H4z"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>
+                Certificates
+            </a>
+            <a href="{{ url_for('ports') }}" class="{% if request.endpoint == 'ports' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Firewall &amp; Ports
+            </a>
+            <a href="{{ url_for('threat_page') }}" class="{% if request.endpoint == 'threat_page' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>
+                Quantum &amp; Shor
+            </a>
+            <a href="{{ url_for('hsm_page') }}" class="{% if request.endpoint == 'hsm_page' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10v4M12 10v4M17 10v4"/></svg>
+                HSM Root of Trust
+            </a>
+            <a href="{{ url_for('compliance_page') }}" class="{% if request.endpoint == 'compliance_page' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Compliance
+            </a>
+            <a href="{{ url_for('audit_page') }}" class="{% if request.endpoint == 'audit_page' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+                Audit Log
+            </a>
+            <a href="{{ url_for('reports') }}" class="{% if request.endpoint == 'reports' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
+                Reports
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="pulse"></div>
+            <span>Agent online &middot; <code>{{ hsm_vendor or 'Entrust Shield HSM' }}</code></span>
+        </div>
+    </aside>
+
+    <main class="main-shell">
+        <header class="topbar">
+            <div>
+                <h2>{% block heading %}Dashboard{% endblock %}</h2>
+                <p>{% block subheading %}High-assurance certificate lifecycle & quantum-safe posture.{% endblock %}</p>
+            </div>
+            <div class="topbar-actions">
+                <form method="post" action="{{ url_for('action_run_agent') }}" class="inline-form">
+                    <button class="btn btn-ghost" type="submit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                        Run agent cycle
+                    </button>
+                </form>
+                <form method="post" action="{{ url_for('action_generate_expiry') }}" class="inline-form">
+                    <button class="btn btn-primary" type="submit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+                        Generate report
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-stack">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+
+        <footer>
+            <span>Powered by Python · HSM-backed root of trust · Shor-aware threat model</span>
+            <span>Threshold: <b>{{ expiry_threshold or 45 }} days</b> · Scan range <b>{{ scan_range[0] if scan_range else 0 }}-{{ scan_range[1] if scan_range else 65000 }}</b></span>
+        </footer>
+    </main>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

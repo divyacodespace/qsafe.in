@@ -1,0 +1,344 @@
+[
+  {
+    "name": "api.fintrust-bank.com",
+    "domain": "api.fintrust-bank.com",
+    "issuer": "Entrust Certification Authority - L1K",
+    "not_before": "2025-05-12T00:00:00Z",
+    "not_after": "2026-05-10T23:59:59Z",
+    "days_remaining": -16,
+    "serial_number": "0A1B2C3D4E5F6071",
+    "fingerprint": "9F:21:DC:73:8B:42:11:F5:90:AB:6C:1D:7E:88:34:01:55:7C:6E:F9:33:91:0A:BD:21:DC:73:8B:42:11",
+    "status": "expired",
+    "recommendations": "replace immediately",
+    "key_algorithm": "RSA",
+    "key_size": 2048,
+    "signature_algorithm": "SHA256withRSA",
+    "san": [
+      "api.fintrust-bank.com",
+      "auth.fintrust-bank.com"
+    ],
+    "source": "inventory",
+    "quantum_risk": "high",
+    "quantum_score": 75,
+    "compliance_tags": [
+      "PCI-DSS",
+      "SOC 2"
+    ]
+  },
+  {
+    "name": "payments.fintrust-bank.com",
+    "domain": "payments.fintrust-bank.com",
+    "issuer": "Entrust Certification Authority - L1K",
+    "not_before": "2025-06-01T00:00:00Z",
+    "not_after": "2026-05-30T23:59:59Z",
+    "days_remaining": 4,
+    "serial_number": "11FE21AB3C4D5E60",
+    "fingerprint": "11:FE:21:AB:3C:4D:5E:60:71:82:93:A4:B5:C6:D7:E8:F9:0A:1B:2C:3D:4E:5F:60:71:82:93:A4:B5:C6",
+    "status": "critical",
+    "recommendations": "renew within 24h",
+    "key_algorithm": "RSA",
+    "key_size": 4096,
+    "signature_algorithm": "SHA384withRSA",
+    "san": [
+      "payments.fintrust-bank.com"
+    ],
+    "source": "inventory",
+    "quantum_risk": "medium",
+    "quantum_score": 45,
+    "compliance_tags": [
+      "PCI-DSS",
+      "ISO 27001"
+    ]
+  },
+  {
+    "name": "portal.healthcorp.example",
+    "domain": "portal.healthcorp.example",
+    "issuer": "DigiCert TLS RSA SHA256 2020 CA1",
+    "not_before": "2025-06-20T00:00:00Z",
+    "not_after": "2026-06-25T23:59:59Z",
+    "days_remaining": 30,
+    "serial_number": "DE:AD:BE:EF:CA:FE:42:00",
+    "fingerprint": "DE:AD:BE:EF:CA:FE:42:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:01:02:03:04:05:06:07",
+    "status": "expiring",
+    "recommendations": "renew now",
+    "key_algorithm": "RSA",
+    "key_size": 2048,
+    "signature_algorithm": "SHA256withRSA",
+    "san": [
+      "portal.healthcorp.example",
+      "phr.healthcorp.example"
+    ],
+    "source": "inventory",
+    "quantum_risk": "high",
+    "quantum_score": 75,
+    "compliance_tags": [
+      "HIPAA",
+      "SOC 2"
+    ]
+  },
+  {
+    "name": "secure-ftp.logistico.example",
+    "domain": "secure-ftp.logistico.example",
+    "issuer": "Internal Logistico Issuing CA",
+    "not_before": "2025-06-30T00:00:00Z",
+    "not_after": "2026-07-05T23:59:59Z",
+    "days_remaining": 40,
+    "serial_number": "BA:DD:CA:FE:11:22:33:44",
+    "fingerprint": "BA:DD:CA:FE:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA",
+    "status": "expiring",
+    "recommendations": "renew now",
+    "key_algorithm": "EC-secp384r1",
+    "key_size": 384,
+    "signature_algorithm": "SHA384withECDSA",
+    "san": [
+      "secure-ftp.logistico.example"
+    ],
+    "source": "inventory",
+    "quantum_risk": "high",
+    "quantum_score": 70,
+    "compliance_tags": [
+      "ISO 27001"
+    ]
+  },
+  {
+    "name": "mfa.fintrust-bank.com",
+    "domain": "mfa.fintrust-bank.com",
+    "issuer": "Entrust Certification Authority - L1K",
+    "not_before": "2025-08-20T00:00:00Z",
+    "not_after": "2026-08-25T23:59:59Z",
+    "days_remaining": 91,
+    "serial_number": "01:23:45:67:89:AB:CD:EF",
+    "fingerprint": "01:23:45:67:89:AB:CD:EF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:01:23:45:67:89:AB",
+    "status": "active",
+    "recommendations": "monitor",
+    "key_algorithm": "RSA",
+    "key_size": 3072,
+    "signature_algorithm": "SHA384withRSA",
+    "san": [
+      "mfa.fintrust-bank.com",
+      "auth-mfa.fintrust-bank.com"
+    ],
+    "source": "inventory",
+    "quantum_risk": "medium",
+    "quantum_score": 55,
+    "compliance_tags": [
+      "PCI-DSS",
+      "ISO 27001"
+    ]
+  },
+  {
+    "name": "legacy.intranet.example",
+    "domain": "legacy.intranet.example",
+    "issuer": "Old Internal Root CA",
+    "not_before": "2024-11-15T00:00:00Z",
+    "not_after": "2026-11-15T23:59:59Z",
+    "days_remaining": 173,
+    "serial_number": "FE:ED:FA:CE:11:22:33:44",
+    "fingerprint": "FE:ED:FA:CE:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:FE:ED:FA:CE:11:22:33:44:55:66",
+    "status": "active",
+    "recommendations": "monitor",
+    "key_algorithm": "RSA",
+    "key_size": 1024,
+    "signature_algorithm": "SHA1withRSA",
+    "san": [
+      "legacy.intranet.example"
+    ],
+    "source": "inventory",
+    "quantum_risk": "critical",
+    "quantum_score": 95,
+    "compliance_tags": []
+  },
+  {
+    "name": "api-gateway.fintrust-bank.com",
+    "domain": "api-gateway.fintrust-bank.com",
+    "issuer": "Entrust PQC Pilot CA",
+    "not_before": "2026-01-20T00:00:00Z",
+    "not_after": "2027-01-20T23:59:59Z",
+    "days_remaining": 239,
+    "serial_number": "PQC:11:22:33:44:55:66:77",
+    "fingerprint": "11:11:22:22:33:33:44:44:55:55:66:66:77:77:88:88:99:99:AA:AA:BB:BB:CC:CC:DD:DD:EE:EE:FF:FF",
+    "status": "active",
+    "recommendations": "monitor",
+    "key_algorithm": "ML-DSA-87",
+    "key_size": 4896,
+    "signature_algorithm": "ML-DSA-87",
+    "san": [
+      "api-gateway.fintrust-bank.com"
+    ],
+    "source": "inventory",
+    "quantum_risk": "quantum-safe",
+    "quantum_score": 5,
+    "compliance_tags": [
+      "NIST 800-53"
+    ]
+  },
+  {
+    "name": "edge.fintrust-bank.com",
+    "domain": "edge.fintrust-bank.com",
+    "issuer": "Entrust Certification Authority - L1K",
+    "not_before": "2025-12-01T00:00:00Z",
+    "not_after": "2027-05-25T23:59:59Z",
+    "days_remaining": 364,
+    "serial_number": "EE:DD:CC:BB:AA:99:88:77",
+    "fingerprint": "EE:DD:CC:BB:AA:99:88:77:66:55:44:33:22:11:00:FF:EE:DD:CC:BB:AA:99:88:77:66:55:44:33:22:11",
+    "status": "active",
+    "recommendations": "monitor",
+    "key_algorithm": "EC-secp256r1",
+    "key_size": 256,
+    "signature_algorithm": "SHA256withECDSA",
+    "san": [
+      "edge.fintrust-bank.com",
+      "cdn.fintrust-bank.com"
+    ],
+    "source": "inventory",
+    "quantum_risk": "high",
+    "quantum_score": 70,
+    "compliance_tags": [
+      "PCI-DSS"
+    ]
+  },
+  {
+    "name": "www.cloudflare.com",
+    "domain": "www.cloudflare.com",
+    "issuer": "WE1",
+    "not_before": "2026-05-07T16:54:23Z",
+    "not_after": "2026-08-05T17:54:15Z",
+    "days_remaining": 71,
+    "serial_number": "8A17F365D9C74E14134FAB2A16BF95C4",
+    "fingerprint": "8A:3D:B2:9E:34:D4:4E:A1:10:47:17:BD:88:A0:A8:6D:E2:84:A4:EF:8D:F5:64:53:86:65:48:7B:A0:A8:1B:2F",
+    "status": "active",
+    "recommendations": "monitor",
+    "key_algorithm": "EC-secp256r1",
+    "key_size": 256,
+    "signature_algorithm": "SHA256withEC-secp256r1",
+    "san": [
+      "www.cloudflare.com"
+    ],
+    "source": "discovery",
+    "quantum_risk": "high",
+    "quantum_score": 70,
+    "compliance_tags": [
+      "PCI-DSS",
+      "ISO 27001"
+    ]
+  },
+  {
+    "name": "www.google.com",
+    "domain": "www.google.com",
+    "issuer": "WE2",
+    "not_before": "2026-05-07T15:54:13Z",
+    "not_after": "2026-07-30T15:54:12Z",
+    "days_remaining": 65,
+    "serial_number": "475F9A80DA051B3B12DFC745E28CA020",
+    "fingerprint": "9D:B8:82:09:AB:BA:7E:98:3F:66:51:2E:F9:0C:3D:FA:C3:79:6C:90:FF:01:F8:C1:2B:1E:BB:00:8D:52:0C:C0",
+    "status": "active",
+    "recommendations": "monitor",
+    "key_algorithm": "EC-secp256r1",
+    "key_size": 256,
+    "signature_algorithm": "SHA256withEC-secp256r1",
+    "san": [
+      "www.google.com"
+    ],
+    "source": "discovery",
+    "quantum_risk": "high",
+    "quantum_score": 70,
+    "compliance_tags": [
+      "PCI-DSS",
+      "ISO 27001"
+    ]
+  },
+  {
+    "name": "www.microsoft.com",
+    "domain": "www.microsoft.com",
+    "issuer": "Microsoft TLS G2 RSA CA OCSP 04",
+    "not_before": "2026-01-22T19:55:21Z",
+    "not_after": "2027-01-17T19:55:21Z",
+    "days_remaining": 236,
+    "serial_number": "43000253929E1C999055F04653000000025392",
+    "fingerprint": "9F:17:B5:48:F7:D2:4F:30:9D:BC:AA:B5:71:57:6C:0C:A7:3B:80:55:9C:E6:9F:27:FE:29:5F:64:08:CC:57:BF",
+    "status": "active",
+    "recommendations": "monitor",
+    "key_algorithm": "RSA",
+    "key_size": 2048,
+    "signature_algorithm": "SHA384withRSA",
+    "san": [
+      "wwwqa.microsoft.com",
+      "www.microsoft.com",
+      "staticview.microsoft.com",
+      "i.s-microsoft.com",
+      "microsoft.com",
+      "c.s-microsoft.com",
+      "privacy.microsoft.com"
+    ],
+    "source": "discovery",
+    "quantum_risk": "high",
+    "quantum_score": 75,
+    "compliance_tags": [
+      "PCI-DSS",
+      "ISO 27001"
+    ]
+  },
+  {
+    "name": "entrust.com",
+    "domain": "www.entrust.com",
+    "issuer": "Sectigo Public Server Authentication CA EV R36",
+    "not_before": "2025-11-24T00:00:00Z",
+    "not_after": "2026-11-24T23:59:59Z",
+    "days_remaining": 182,
+    "serial_number": "3C8AE6791F4A97FF27A4AC367300F161",
+    "fingerprint": "C3:1B:22:AE:55:ED:8E:C6:32:76:BD:9C:CC:CA:73:09:6B:17:BE:78:90:20:4A:93:54:FB:D0:F7:96:24:D9:AA",
+    "status": "active",
+    "recommendations": "monitor",
+    "key_algorithm": "RSA",
+    "key_size": 4096,
+    "signature_algorithm": "SHA256withRSA",
+    "san": [
+      "entrust.com",
+      "activation.licensing.entrust.com",
+      "adp.entrust.com",
+      "autodiscover.entrust.com",
+      "china-proxy-test.entrust.com",
+      "china-proxy.entrust.com",
+      "credential-builder-dev.demo.entrust.com",
+      "credential-builder.demo.entrust.com",
+      "fb.entrust.com",
+      "fd.entrust.com",
+      "fd2.entrust.com",
+      "fd3.entrust.com",
+      "fd4.entrust.com",
+      "fs.entrust.com",
+      "in.entrust.com",
+      "kiteworks.entrust.com",
+      "licensing.entrust.com",
+      "mail.entrust.com",
+      "online.entrust.com",
+      "outlook.entrust.com",
+      "plm.entrust.com",
+      "plmdev.entrust.com",
+      "plmtest.entrust.com",
+      "sumaidmzprx.entrust.com",
+      "test.entrust.com",
+      "testonline.entrust.com",
+      "w2.entrust.com",
+      "wb.entrust.com",
+      "wbw.entrust.com",
+      "wd.entrust.com",
+      "wd2.entrust.com",
+      "wd3.entrust.com",
+      "wd4.entrust.com",
+      "wdw.entrust.com",
+      "web.entrust.com",
+      "ws.entrust.com",
+      "wsw.entrust.com",
+      "www.entrust.com",
+      "www.kiteworks.entrust.com"
+    ],
+    "source": "discovery",
+    "quantum_risk": "medium",
+    "quantum_score": 45,
+    "compliance_tags": [
+      "PCI-DSS",
+      "ISO 27001"
+    ]
+  }
+]

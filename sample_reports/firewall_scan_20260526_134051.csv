@@ -1,0 +1,1 @@
+host,port,state,service,risk,policy_violation,vulnerability_class,vulnerability_description,attack_vector,mitigation,references,product,version,intrusion_indicator,notes

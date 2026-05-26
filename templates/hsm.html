@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% block title %}HSM · PKI Agentic AI{% endblock %}
+{% block heading %}HSM-bound root of trust{% endblock %}
+{% block subheading %}{{ hsm_vendor }} integration providing FIPS-validated key generation and storage.{% endblock %}
+
+{% block content %}
+<section class="grid-2">
+    <article class="card hsm-card">
+        <header class="card-header">
+            <div>
+                <h3>Device status</h3>
+                <p>Live read from the configured HSM client</p>
+            </div>
+            <span class="chip chip--accent">{{ hsm.vendor }}</span>
+        </header>
+        <dl class="kv">
+            {% for key, value in hsm.items() %}
+                <div><dt>{{ key }}</dt><dd>{{ value }}</dd></div>
+            {% endfor %}
+        </dl>
+    </article>
+
+    <article class="card">
+        <header class="card-header"><h3>Why an HSM matters</h3></header>
+        <ul class="bullets">
+            <li>Private keys never leave the tamper-evident boundary; signing happens inside the module.</li>
+            <li>FIPS 140-3 / Common Criteria validation supports PCI-DSS 4.0 and ISO 27001 control objectives.</li>
+            <li>Hybrid classical + ML-KEM/ML-DSA pilots are issued under the same HSM-protected root.</li>
+            <li>Audit-grade key-use logs feed straight into the agent's audit trail.</li>
+        </ul>
+    </article>
+</section>
+
+<section class="card">
+    <header class="card-header"><h3>Recommended operational flow</h3></header>
+    <ol class="bullets bullets--numbered">
+        <li>Generate root CA inside the HSM at 4096-bit RSA or ML-DSA-87, never exportable.</li>
+        <li>Issue intermediate CAs under the HSM-protected root; pin them in the agent.</li>
+        <li>Sign all leaf CSRs through the HSM; record the operation hash to the audit log.</li>
+        <li>Rotate keys per PCI-DSS 4.0 §3.7 — auto-trigger via the agent ≤ 45 days before expiry.</li>
+        <li>Maintain a quantum-safe parallel hierarchy and migrate by service tier.</li>
+    </ol>
+</section>
+{% endblock %}

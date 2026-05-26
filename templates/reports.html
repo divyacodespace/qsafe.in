@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block title %}Reports · PKI Agentic AI{% endblock %}
+{% block heading %}Reports{% endblock %}
+{% block subheading %}Latest generated CSV / HTML / PDF reports — sorted by modification time.{% endblock %}
+
+{% block content %}
+<section class="toolbar">
+    <form method="post" action="{{ url_for('action_generate_expiry') }}" class="inline-form">
+        <button class="btn btn-primary" type="submit">Generate certificate expiry report</button>
+    </form>
+    <form method="post" action="{{ url_for('action_run_agent') }}" class="inline-form">
+        <button class="btn btn-ghost" type="submit">Run agent + persist decisions</button>
+    </form>
+</section>
+
+<section class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Name</th><th>Kind</th><th>Modified</th><th>Size</th><th></th></tr></thead>
+            <tbody>
+                {% for r in reports %}
+                    <tr>
+                        <td><strong>{{ r.name }}</strong></td>
+                        <td><span class="pill pill-{{ r.kind }}">{{ r.kind|upper }}</span></td>
+                        <td>{{ r.modified }}</td>
+                        <td>{{ '%.1f'|format(r.size / 1024) }} KB</td>
+                        <td><a class="btn btn-ghost" href="{{ url_for('reports_download', filename=r.name) }}">Download</a></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="muted center">No reports yet — generate one above.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+{% block title %}Compliance · PKI Agentic AI{% endblock %}
+{% block heading %}Compliance posture{% endblock %}
+{% block subheading %}Verdicts mapped to PCI-DSS, HIPAA, ISO 27001, SOC 2 and NIST 800-53 controls.{% endblock %}
+
+{% block content %}
+<section class="kpi-grid">
+    {% for framework, data in verdicts.items() %}
+        <article class="kpi kpi--{{ data.verdict }}">
+            <header><span>{{ framework }}</span></header>
+            <strong class="text-{{ data.verdict }}">{{ data.verdict|upper }}</strong>
+            <footer>{{ data.certificate_failures }} fails · {{ data.certificate_warnings }} warnings</footer>
+        </article>
+    {% endfor %}
+</section>
+
+<section class="card">
+    <header class="card-header"><h3>Control mapping</h3></header>
+    {% for framework, controls in frameworks.items() %}
+        <div class="framework-block">
+            <h4>{{ framework }}</h4>
+            <ul class="bullets">
+                {% for control in controls %}
+                    <li>{{ control }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

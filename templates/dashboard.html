@@ -1,0 +1,171 @@
+{% extends 'layout.html' %}
+{% block title %}Dashboard · PKI Agentic AI{% endblock %}
+{% block heading %}Mission control{% endblock %}
+{% block subheading %}Live posture across the PKI estate — certificates, firewall, agent decisions.{% endblock %}
+
+{% block content %}
+<section class="kpi-grid">
+    <article class="kpi kpi--gradient-cyan">
+        <header><span>Certificates inventoried</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16v12H4z"/><path d="M9 11h6M9 15h4"/></svg></header>
+        <strong>{{ certs|length }}</strong>
+        <footer>{{ expiring|length }} expiring · {{ expired|length }} expired</footer>
+    </article>
+    <article class="kpi kpi--gradient-amber">
+        <header><span>Expiring ≤ {{ expiry_threshold }} days</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></header>
+        <strong>{{ expiring|length }}</strong>
+        <footer>Critical window: {{ critical_threshold }} days</footer>
+    </article>
+    <article class="kpi kpi--gradient-rose">
+        <header><span>Shor-vulnerable certs</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></header>
+        <strong>{{ quantum_vulnerable|length }}</strong>
+        <footer>{{ ((quantum_vulnerable|length / (certs|length or 1)) * 100)|round(0)|int }}% of estate</footer>
+    </article>
+    <article class="kpi kpi--gradient-violet">
+        <header><span>Pending agent decisions</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h18M3 6h18M3 18h18"/></svg></header>
+        <strong>{{ decisions|selectattr('automated', 'equalto', false)|list|length }}</strong>
+        <footer>{{ decisions|length }} total this cycle</footer>
+    </article>
+</section>
+
+<section class="grid-2">
+    <article class="card">
+        <header class="card-header">
+            <div>
+                <h3>Threat model</h3>
+                <p>{{ summary.model }} · {{ summary.focus }}</p>
+            </div>
+            <span class="chip chip--accent">Shor-aware</span>
+        </header>
+        <p class="muted">{{ summary.quantum_threat }}</p>
+        <ul class="bullets">
+            {% for rec in summary.recommendations[:4] %}
+                <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="card">
+        <header class="card-header">
+            <div>
+                <h3>Alert severity mix</h3>
+                <p>{{ alerts|length }} alerts in last evaluation</p>
+            </div>
+        </header>
+        <div class="severity-bars">
+            {% set total = (severity_counts.critical + severity_counts.high + severity_counts.medium + severity_counts.low) or 1 %}
+            <div class="severity-row">
+                <span>Critical</span>
+                <div class="bar"><div class="bar-fill bar-critical" style="width: {{ (severity_counts.critical/total*100)|round(0)|int }}%"></div></div>
+                <strong>{{ severity_counts.critical }}</strong>
+            </div>
+            <div class="severity-row">
+                <span>High</span>
+                <div class="bar"><div class="bar-fill bar-high" style="width: {{ (severity_counts.high/total*100)|round(0)|int }}%"></div></div>
+                <strong>{{ severity_counts.high }}</strong>
+            </div>
+            <div class="severity-row">
+                <span>Medium</span>
+                <div class="bar"><div class="bar-fill bar-medium" style="width: {{ (severity_counts.medium/total*100)|round(0)|int }}%"></div></div>
+                <strong>{{ severity_counts.medium }}</strong>
+            </div>
+            <div class="severity-row">
+                <span>Low</span>
+                <div class="bar"><div class="bar-fill bar-low" style="width: {{ (severity_counts.low/total*100)|round(0)|int }}%"></div></div>
+                <strong>{{ severity_counts.low }}</strong>
+            </div>
+        </div>
+    </article>
+</section>
+
+<section class="card">
+    <header class="card-header">
+        <div>
+            <h3>Certificates approaching expiry</h3>
+            <p>Sorted ascending by days remaining (window ≤ {{ expiry_threshold }} days)</p>
+        </div>
+        <a class="btn btn-ghost" href="{{ url_for('certificates') }}">View all →</a>
+    </header>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr><th>Domain</th><th>Issuer</th><th>Algorithm</th><th>Expiry</th><th>Days</th><th>Quantum</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for c in expiring[:8] %}
+                    <tr>
+                        <td><strong>{{ c.domain }}</strong><div class="cell-sub">{{ c.name }}</div></td>
+                        <td>{{ c.issuer }}</td>
+                        <td><code>{{ c.key_algorithm }}-{{ c.key_size }}</code></td>
+                        <td>{{ c.not_after.strftime('%Y-%m-%d') }}</td>
+                        <td><span class="pill pill-{{ c.status }}">{{ c.days_remaining }}d</span></td>
+                        <td><span class="pill pill-q-{{ c.quantum_risk }}">{{ c.quantum_risk }}</span></td>
+                        <td>{{ c.recommendations }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="muted center">All certificates are outside the {{ expiry_threshold }}-day window 🎉</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="grid-2">
+    <article class="card">
+        <header class="card-header">
+            <div>
+                <h3>Latest agent decisions</h3>
+                <p>Autonomous outputs from this cycle</p>
+            </div>
+            <span class="chip chip--accent">{{ decisions|length }}</span>
+        </header>
+        <ul class="decision-list">
+            {% for d in decisions[:6] %}
+                <li class="decision decision-{{ d.severity }}">
+                    <div class="decision-head">
+                        <span class="decision-action">{{ d.action.replace('_', ' ')|title }}</span>
+                        <span class="decision-target">{{ d.target }}</span>
+                    </div>
+                    <p>{{ d.rationale }}</p>
+                    <footer>
+                        <span>conf {{ (d.confidence*100)|round(0)|int }}%</span>
+                        <span>{{ 'auto' if d.automated else 'human review' }}</span>
+                    </footer>
+                </li>
+            {% else %}
+                <li class="muted">No decisions yet. Run an agent cycle.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="card">
+        <header class="card-header">
+            <div>
+                <h3>Firewall snapshot</h3>
+                <p>{% if scan_meta %}Policy: <code>only tcp/443 allowed</code> · {{ scan_meta.host }} ({{ scan_meta.engine }}){% else %}No scan yet — run one from Firewall &amp; Ports.{% endif %}</p>
+            </div>
+            <a class="btn btn-ghost" href="{{ url_for('ports') }}">Open scanner →</a>
+        </header>
+        {% if scan_results %}
+            <div class="metric-row">
+                <div><span>443 state</span><strong class="text-{% if scan_meta.allowed_port_state == 'open' %}pass{% else %}warn{% endif %}">{{ scan_meta.allowed_port_state }}</strong></div>
+                <div><span>Open</span><strong>{{ scan_meta.open }}</strong></div>
+                <div><span>Policy violations</span><strong class="text-rose">{{ scan_meta.policy_violations }}</strong></div>
+                <div><span>Elapsed</span><strong>{{ scan_meta.elapsed_seconds }}s</strong></div>
+            </div>
+            <ul class="port-list">
+                {% for r in scan_results[:8] if r.policy_violation %}
+                    <li>
+                        <span class="port-num">TCP/{{ r.port }}</span>
+                        <span class="port-service">{{ (r.service or 'unknown')|upper }} — {{ r.vulnerability_class or 'non-compliant' }}</span>
+                        <span class="pill pill-{{ r.risk }}">{{ r.state }}</span>
+                    </li>
+                {% else %}
+                    <li class="muted">No policy violations — only 443 is reachable.</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="muted">Run a firewall scan to populate this view.</p>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

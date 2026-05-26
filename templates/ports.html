@@ -1,0 +1,148 @@
+{% extends 'layout.html' %}
+{% block title %}Firewall & Ports · PKI Agentic AI{% endblock %}
+{% block heading %}Firewall &amp; port scanner{% endblock %}
+{% block subheading %}<b>Policy: only TCP/443 (HTTPS) is permitted.</b> Every other open or filtered port is reported as a vulnerability with full context.{% endblock %}
+
+{% block content %}
+<section class="card policy-banner">
+    <div>
+        <h3>Exposure policy</h3>
+        <p>Allow-list: <code>tcp/443</code>. Any other reachable port is a policy violation and must be closed, justified with compensating controls, or moved behind a bastion / VPN.</p>
+    </div>
+    <div class="policy-state">
+        {% if scan_meta and scan_meta.allowed_port_state %}
+            <span>Last scan 443 state</span>
+            <strong class="text-{% if scan_meta.allowed_port_state == 'open' %}pass{% else %}warn{% endif %}">{{ scan_meta.allowed_port_state }}</strong>
+        {% else %}
+            <span>No scan yet</span><strong>—</strong>
+        {% endif %}
+    </div>
+</section>
+
+<section class="card scan-card">
+    <header class="card-header">
+        <div>
+            <h3>Run a scan</h3>
+            <p>Defaults to localhost · range {{ scan_range[0] }}–{{ scan_range[1] }}. Nmap auto-detected when available.</p>
+        </div>
+    </header>
+    <form method="post" class="scan-form">
+        <label>Host<input name="host" value="127.0.0.1" required></label>
+        <label>Start port<input name="start_port" value="{{ scan_range[0] }}" type="number" min="0" max="65535"></label>
+        <label>End port<input name="end_port" value="{{ scan_range[1] }}" type="number" min="0" max="65535"></label>
+        <label>Engine
+            <select name="engine">
+                <option value="auto">Auto (prefer nmap)</option>
+                <option value="socket">Socket probe</option>
+                <option value="nmap">Nmap (requires binary)</option>
+            </select>
+        </label>
+        <button class="btn btn-primary" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            Start scan
+        </button>
+    </form>
+</section>
+
+{% if scan_meta %}
+<section class="metric-row metric-row--wide">
+    <div><span>Host</span><strong>{{ scan_meta.host }}</strong></div>
+    <div><span>Range</span><strong>{{ scan_meta.start }}–{{ scan_meta.end }}</strong></div>
+    <div><span>Engine</span><strong>{{ scan_meta.engine }}</strong></div>
+    <div><span>Open</span><strong class="text-cyan">{{ scan_meta.open }}</strong></div>
+    <div><span>Filtered</span><strong>{{ scan_meta.filtered }}</strong></div>
+    <div><span>Policy violations</span><strong class="text-rose">{{ scan_meta.policy_violations }}</strong></div>
+    <div><span>Elapsed</span><strong>{{ scan_meta.elapsed_seconds }}s</strong></div>
+</section>
+{% endif %}
+
+<section class="card">
+    <header class="card-header">
+        <div>
+            <h3>Vulnerability findings ({{ suspicious|length }})</h3>
+            <p>Each non-443 reachable port is enumerated with class, attack vector, mitigation, and framework references.</p>
+        </div>
+        <span class="chip chip--rose">{{ suspicious|length }} non-compliant</span>
+    </header>
+    {% if suspicious %}
+        <div class="vuln-grid">
+            {% for r in suspicious %}
+                <article class="vuln-card vuln-{{ r.risk }}">
+                    <header>
+                        <div>
+                            <span class="port-num">TCP/{{ r.port }}</span>
+                            <span class="port-service">{{ (r.service or 'unknown service')|upper }}</span>
+                        </div>
+                        <div class="vuln-pills">
+                            <span class="pill pill-{{ r.risk }}">{{ r.risk }}</span>
+                            <span class="pill pill-{{ r.state }}">{{ r.state }}</span>
+                            {% if r.intrusion_indicator %}<span class="chip chip--rose">intrusion IOC</span>{% endif %}
+                        </div>
+                    </header>
+                    {% if r.vulnerability_class %}
+                        <p class="vuln-class">{{ r.vulnerability_class }}</p>
+                    {% endif %}
+                    {% if r.vulnerability_description %}
+                        <p>{{ r.vulnerability_description }}</p>
+                    {% endif %}
+                    {% if r.attack_vector %}
+                        <div class="vuln-block">
+                            <strong>Attack vector</strong>
+                            <span>{{ r.attack_vector }}</span>
+                        </div>
+                    {% endif %}
+                    {% if r.mitigation %}
+                        <div class="vuln-block">
+                            <strong>Mitigation</strong>
+                            <span>{{ r.mitigation }}</span>
+                        </div>
+                    {% endif %}
+                    {% if r.references %}
+                        <footer>
+                            {% for ref in r.references %}
+                                <span class="chip">{{ ref }}</span>
+                            {% endfor %}
+                        </footer>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">No policy violations — only TCP/443 reachable. The estate is compliant.</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <header class="card-header">
+        <div>
+            <h3>All reported ports</h3>
+            <p>Closed ports (other than 443) are omitted because they are compliant.</p>
+        </div>
+    </header>
+    <div class="table-wrap table-wrap--compact">
+        <table class="data-table">
+            <thead><tr><th>Port</th><th>State</th><th>Service</th><th>Risk</th><th>Policy</th><th>Class</th></tr></thead>
+            <tbody>
+                {% for r in scan_results %}
+                    <tr>
+                        <td><strong>TCP/{{ r.port }}</strong></td>
+                        <td><span class="pill pill-{{ r.state }}">{{ r.state }}</span></td>
+                        <td>{{ r.service or '—' }}</td>
+                        <td><span class="pill pill-{{ r.risk }}">{{ r.risk }}</span></td>
+                        <td>
+                            {% if r.policy_violation %}
+                                <span class="pill pill-fail">violation</span>
+                            {% else %}
+                                <span class="pill pill-pass">compliant</span>
+                            {% endif %}
+                        </td>
+                        <td class="muted">{{ r.vulnerability_class or ('expected HTTPS' if r.port == 443 else '—') }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="muted center">Run a scan to populate.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

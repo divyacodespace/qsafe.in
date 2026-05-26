@@ -1,0 +1,11 @@
+decided_at,action,target,severity,confidence,automated,rationale
+2026-05-26T13:38:56.794267Z,replace_certificate,api.fintrust-bank.com,critical,0.99,True,Expired 16 day(s) ago — production traffic is at risk.
+2026-05-26T13:38:56.794281Z,plan_pqc_migration,api.fintrust-bank.com,medium,0.85,False,RSA-2048 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:38:56.794291Z,trigger_renewal,payments.fintrust-bank.com,critical,0.95,True,Expires in 4 day(s); auto-renew via HSM-signed CSR.
+2026-05-26T13:38:56.794300Z,schedule_renewal,portal.healthcorp.example,high,0.9,False,Expires in 30 day(s); within 45-day window.
+2026-05-26T13:38:56.794306Z,plan_pqc_migration,portal.healthcorp.example,medium,0.85,False,RSA-2048 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:38:56.794314Z,schedule_renewal,secure-ftp.logistico.example,high,0.9,False,Expires in 40 day(s); within 45-day window.
+2026-05-26T13:38:56.794321Z,plan_pqc_migration,secure-ftp.logistico.example,medium,0.85,False,EC-secp384r1-384 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:38:56.794330Z,plan_pqc_migration,legacy.intranet.example,medium,0.85,False,RSA-1024 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:38:56.794339Z,plan_pqc_migration,edge.fintrust-bank.com,medium,0.85,False,EC-secp256r1-256 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:38:56.794366Z,accelerate_pqc_migration,estate,critical,0.88,False,5 of 8 certificates are Shor-vulnerable (62%). Prioritize CA hierarchy and externally-facing endpoints.

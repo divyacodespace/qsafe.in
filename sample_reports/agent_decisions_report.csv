@@ -1,0 +1,14 @@
+decided_at,action,target,severity,confidence,automated,rationale
+2026-05-26T13:44:37.023507Z,replace_certificate,api.fintrust-bank.com,critical,0.99,True,Expired 16 day(s) ago — production traffic is at risk.
+2026-05-26T13:44:37.023756Z,plan_pqc_migration,api.fintrust-bank.com,medium,0.85,False,RSA-2048 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:44:37.023830Z,trigger_renewal,payments.fintrust-bank.com,critical,0.95,True,Expires in 4 day(s); auto-renew via HSM-signed CSR.
+2026-05-26T13:44:37.023917Z,schedule_renewal,portal.healthcorp.example,high,0.9,False,Expires in 30 day(s); within 45-day window.
+2026-05-26T13:44:37.024011Z,plan_pqc_migration,portal.healthcorp.example,medium,0.85,False,RSA-2048 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:44:37.024057Z,schedule_renewal,secure-ftp.logistico.example,high,0.9,False,Expires in 40 day(s); within 45-day window.
+2026-05-26T13:44:37.024090Z,plan_pqc_migration,secure-ftp.logistico.example,medium,0.85,False,EC-secp384r1-384 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:44:37.024143Z,plan_pqc_migration,legacy.intranet.example,medium,0.85,False,RSA-1024 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:44:37.024193Z,plan_pqc_migration,edge.fintrust-bank.com,medium,0.85,False,EC-secp256r1-256 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:44:37.024241Z,plan_pqc_migration,www.cloudflare.com,medium,0.85,False,EC-secp256r1-256 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:44:37.024318Z,plan_pqc_migration,www.google.com,medium,0.85,False,EC-secp256r1-256 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:44:37.024354Z,plan_pqc_migration,www.microsoft.com,medium,0.85,False,RSA-2048 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-26T13:44:37.024580Z,accelerate_pqc_migration,estate,critical,0.88,False,8 of 12 certificates are Shor-vulnerable (67%). Prioritize CA hierarchy and externally-facing endpoints.

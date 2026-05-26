@@ -1,0 +1,79 @@
+{% extends 'layout.html' %}
+{% block title %}Quantum & Shor · PKI Agentic AI{% endblock %}
+{% block heading %}Quantum threat &amp; Shor exposure{% endblock %}
+{% block subheading %}Per-certificate scoring under Shor's algorithm with PQC migration recommendations.{% endblock %}
+
+{% block content %}
+<section class="card threat-hero">
+    <div>
+        <h3>{{ summary.model }}</h3>
+        <p class="muted">{{ summary.quantum_threat }}</p>
+        <div class="chip-row">
+            <span class="chip chip--accent">Shor-aware</span>
+            <span class="chip">PQC roadmap</span>
+            <span class="chip">HSM-bound keys</span>
+        </div>
+    </div>
+    <div class="threat-stat">
+        <span>Generated</span>
+        <strong>{{ summary.generated_at }}</strong>
+    </div>
+</section>
+
+<section class="grid-2">
+    <article class="card">
+        <header class="card-header"><h3>Classical threats</h3></header>
+        <ul class="bullets">
+            {% for t in summary.classical_threats %}
+                <li>{{ t }}</li>
+            {% endfor %}
+        </ul>
+    </article>
+    <article class="card">
+        <header class="card-header"><h3>Recommendations</h3></header>
+        <ol class="bullets bullets--numbered">
+            {% for r in summary.recommendations %}
+                <li>{{ r }}</li>
+            {% endfor %}
+        </ol>
+    </article>
+</section>
+
+<section class="card">
+    <header class="card-header">
+        <div>
+            <h3>Per-certificate Shor exposure</h3>
+            <p>Higher score = greater theoretical break risk under a cryptanalytically-relevant quantum computer.</p>
+        </div>
+    </header>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr><th>Domain</th><th>Algorithm</th><th>Classification</th><th>Score</th><th>Qubits (Shor)</th><th>Rationale</th><th>Mitigation</th></tr>
+            </thead>
+            <tbody>
+                {% for item in scored %}
+                    {% set cert = item.cert %}
+                    {% set s = item.score %}
+                    <tr>
+                        <td><strong>{{ cert.domain }}</strong></td>
+                        <td><code>{{ s.algorithm }}-{{ s.key_size }}</code></td>
+                        <td><span class="pill pill-q-{{ s.classification }}">{{ s.classification }}</span></td>
+                        <td>
+                            <div class="score-cell">
+                                <div class="bar bar-mini"><div class="bar-fill bar-high" style="width: {{ s.score }}%"></div></div>
+                                <strong>{{ s.score }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ s.shor_logical_qubits or '—' }}</td>
+                        <td class="muted">{{ s.rationale }}</td>
+                        <td>{{ s.mitigation }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="muted center">No certificates inventoried yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
