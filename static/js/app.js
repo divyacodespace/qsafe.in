@@ -18,7 +18,7 @@
       })
       .catch(() => {});
   }
-  setInterval(refreshStatus, 30_000);
+  setInterval(refreshStatus, 120_000);
 
   // ---- Certificate table search -----------------------------------------
   const search = document.getElementById('cert-search');
