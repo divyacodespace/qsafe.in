@@ -1,18 +1,16 @@
-"""Report generation in CSV, HTML, and PDF formats."""
+"""Report generation in CSV, HTML, and PDF formats.
 
+Heavy deps (``pandas`` and ``reportlab``) are imported lazily so that
+cold starts on Vercel only pay for them when a report is actually
+generated — page renders that don't need a report (dashboard, /api/status,
+/certificates, etc.) come up much faster.
+"""
+
+import csv
 import html
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, List, Optional
-
-import pandas as pd
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.platypus import (
-    Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
-)
 
 from .audit import AuditLogger
 from .config import REPORT_DIR
@@ -47,12 +45,11 @@ class ReportManager:
     def generate_certificate_expiry_report(self, certs: Iterable[CertificateRecord]) -> dict:
         certs = list(certs)
         rows = [c.to_dict() for c in certs]
-        df = pd.DataFrame(rows, columns=CERT_COLUMNS) if rows else pd.DataFrame(columns=CERT_COLUMNS)
         stem = self.report_dir / f'certificate_expiry_{_timestamp()}'
-        paths = self._write_all(stem, 'Certificate Expiry Report', df)
+        paths = self._write_all(stem, 'Certificate Expiry Report', CERT_COLUMNS, rows)
         self.last_reports['certificate_expiry'] = paths
         # Also keep a stable "latest" alias so the UI can link without history lookup.
-        self._write_all(self.report_dir / 'certificate_expiry_report', 'Certificate Expiry Report', df)
+        self._write_all(self.report_dir / 'certificate_expiry_report', 'Certificate Expiry Report', CERT_COLUMNS, rows)
         if self.audit:
             self.audit.record('Certificate expiry report generated', metadata={'rows': len(rows)})
         return paths
@@ -60,11 +57,10 @@ class ReportManager:
     def generate_firewall_report(self, scans: Iterable[ScanResult]) -> dict:
         scans = list(scans)
         rows = [s.to_dict() for s in scans]
-        df = pd.DataFrame(rows, columns=SCAN_COLUMNS) if rows else pd.DataFrame(columns=SCAN_COLUMNS)
         stem = self.report_dir / f'firewall_scan_{_timestamp()}'
-        paths = self._write_all(stem, 'Firewall Scan Report', df)
+        paths = self._write_all(stem, 'Firewall Scan Report', SCAN_COLUMNS, rows)
         self.last_reports['firewall'] = paths
-        self._write_all(self.report_dir / 'firewall_scan_report', 'Firewall Scan Report', df)
+        self._write_all(self.report_dir / 'firewall_scan_report', 'Firewall Scan Report', SCAN_COLUMNS, rows)
         if self.audit:
             self.audit.record('Firewall scan report generated', metadata={'rows': len(rows)})
         return paths
@@ -72,11 +68,10 @@ class ReportManager:
     def generate_agent_decisions_report(self, decisions: Iterable[AgentDecision]) -> dict:
         rows = [d.to_dict() for d in decisions]
         cols = ['decided_at', 'action', 'target', 'severity', 'confidence', 'automated', 'rationale']
-        df = pd.DataFrame(rows, columns=cols) if rows else pd.DataFrame(columns=cols)
         stem = self.report_dir / f'agent_decisions_{_timestamp()}'
-        paths = self._write_all(stem, 'Agent Decision Log', df)
+        paths = self._write_all(stem, 'Agent Decision Log', cols, rows)
         self.last_reports['decisions'] = paths
-        self._write_all(self.report_dir / 'agent_decisions_report', 'Agent Decision Log', df)
+        self._write_all(self.report_dir / 'agent_decisions_report', 'Agent Decision Log', cols, rows)
         if self.audit:
             self.audit.record('Agent decisions report generated', metadata={'rows': len(rows)})
         return paths
@@ -98,21 +93,37 @@ class ReportManager:
 
     # -- writers -------------------------------------------------------------
 
-    def _write_all(self, stem: Path, title: str, df: pd.DataFrame) -> dict:
+    @staticmethod
+    def _cell(row: dict, col: str) -> str:
+        v = row.get(col)
+        if v is None:
+            return ''
+        if isinstance(v, (list, tuple)):
+            return '; '.join(str(x) for x in v)
+        return str(v)
+
+    def _write_all(self, stem: Path, title: str, columns: List[str], rows: List[dict]) -> dict:
         csv_path = stem.with_suffix('.csv')
         html_path = stem.with_suffix('.html')
         pdf_path = stem.with_suffix('.pdf')
-        df.to_csv(csv_path, index=False)
-        self._write_html(html_path, title, df)
-        self._write_pdf(pdf_path, title, df)
+        self._write_csv(csv_path, columns, rows)
+        self._write_html(html_path, title, columns, rows)
+        self._write_pdf(pdf_path, title, columns, rows)
         return {'csv': str(csv_path), 'html': str(html_path), 'pdf': str(pdf_path)}
 
-    def _write_html(self, path: Path, title: str, df: pd.DataFrame) -> None:
+    def _write_csv(self, path: Path, columns: List[str], rows: List[dict]) -> None:
+        with path.open('w', encoding='utf-8', newline='') as fh:
+            writer = csv.writer(fh)
+            writer.writerow(columns)
+            for row in rows:
+                writer.writerow([self._cell(row, c) for c in columns])
+
+    def _write_html(self, path: Path, title: str, columns: List[str], rows: List[dict]) -> None:
         rows_html = ''.join(
-            '<tr>' + ''.join(f'<td>{html.escape(str(v))}</td>' for v in row) + '</tr>'
-            for row in df.itertuples(index=False)
+            '<tr>' + ''.join(f'<td>{html.escape(self._cell(row, c))}</td>' for c in columns) + '</tr>'
+            for row in rows
         )
-        headers_html = ''.join(f'<th>{html.escape(c)}</th>' for c in df.columns)
+        headers_html = ''.join(f'<th>{html.escape(c)}</th>' for c in columns)
         body = f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <title>{html.escape(title)}</title>
 <style>
@@ -125,27 +136,37 @@ class ReportManager:
  tr:hover td {{ background: rgba(56,189,248,.05); }}
 </style></head><body>
 <h1>{html.escape(title)}</h1>
-<div class="meta">Generated: {datetime.utcnow().isoformat()}Z &middot; {len(df)} records</div>
+<div class="meta">Generated: {datetime.utcnow().isoformat()}Z &middot; {len(rows)} records</div>
 <table><thead><tr>{headers_html}</tr></thead><tbody>{rows_html}</tbody></table>
 </body></html>"""
         path.write_text(body, encoding='utf-8')
 
-    def _write_pdf(self, path: Path, title: str, df: pd.DataFrame) -> None:
+    def _write_pdf(self, path: Path, title: str, columns: List[str], rows: List[dict]) -> None:
+        # Lazy-import reportlab — only paid for when a PDF is actually requested,
+        # so a cold start that only serves HTML stays fast.
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.units import inch
+        from reportlab.platypus import (
+            Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
+        )
+
         doc = SimpleDocTemplate(str(path), pagesize=letter,
                                 leftMargin=0.5 * inch, rightMargin=0.5 * inch,
                                 topMargin=0.5 * inch, bottomMargin=0.5 * inch)
         styles = getSampleStyleSheet()
         story = [
             Paragraph(f'<b>{html.escape(title)}</b>', styles['Title']),
-            Paragraph(f'Generated: {datetime.utcnow().isoformat()}Z &nbsp;·&nbsp; {len(df)} records',
+            Paragraph(f'Generated: {datetime.utcnow().isoformat()}Z &nbsp;·&nbsp; {len(rows)} records',
                       styles['Normal']),
             Spacer(1, 12),
         ]
-        if df.empty:
+        if not rows:
             story.append(Paragraph('<i>No records.</i>', styles['Normal']))
         else:
-            data = [[str(c) for c in df.columns]] + [
-                [str(v)[:40] for v in row] for row in df.itertuples(index=False)
+            data = [list(columns)] + [
+                [self._cell(row, c)[:40] for c in columns] for row in rows
             ]
             tbl = Table(data, repeatRows=1)
             tbl.setStyle(TableStyle([

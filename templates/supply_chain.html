@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+
+{% block title %}Supply Chain Findings{% endblock %}
+
+{% block heading %}Supply Chain Findings{% endblock %}
+{% block subheading %}Findings from Bumblebee (NDJSON) and mapped compliance impact.{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <h3>Summary</h3>
+    <p>Findings: <strong>{{ supply_findings|length }}</strong></p>
+    <p>Mapped compliance: <strong>{{ compliance.verdict }}</strong></p>
+</div>
+
+<div class="panel">
+    <h3>Findings</h3>
+    {% if supply_findings %}
+        <ul class="findings-list">
+        {% for f in supply_findings %}
+            <li class="finding-item">
+                <div class="finding-head">
+                    <span class="severity severity-{{ (f.severity or f.level or 'high')|lower }}">{{ f.severity or f.level or 'high' }}</span>
+                    <strong>{{ f.package or f.component or f.name or f.title or f.id }}</strong>
+                </div>
+                <div class="finding-body">
+                    <p>{{ f.description or f.details or f.summary or '' }}</p>
+                    <pre>{{ f | tojson(indent=2) }}</pre>
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No supply-chain findings available. Run the scan from the server or upload a catalog into <code>threat_intel/</code>.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

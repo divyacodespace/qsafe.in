@@ -53,13 +53,17 @@ HOSTS_FILE = DATA_DIR / 'hosts.json'
 EXPIRY_THRESHOLD_DAYS = int(os.getenv('PKI_EXPIRY_DAYS', '45'))
 CRITICAL_EXPIRY_DAYS = int(os.getenv('PKI_CRITICAL_DAYS', '7'))
 
+# The single port permitted by the firewall policy. Override with
+# PKI_ALLOWED_PORT to switch to e.g. HTTPS/443.
+ALLOWED_PORT = int(os.getenv('PKI_ALLOWED_PORT', '403'))
+
 SCAN_PORT_START = int(os.getenv('PKI_PORT_START', '0'))
 SCAN_PORT_END = int(os.getenv('PKI_PORT_END', '65000' if not IS_SERVERLESS else '1024'))
 SCAN_PORT_RANGE = (SCAN_PORT_START, SCAN_PORT_END)
 SCAN_TIMEOUT = float(os.getenv('PKI_SCAN_TIMEOUT', '0.4' if not IS_SERVERLESS else '0.2'))
 SCAN_WORKERS = int(os.getenv('PKI_SCAN_WORKERS', '256' if not IS_SERVERLESS else '64'))
 SCAN_DEMO_LIMIT = int(os.getenv('PKI_SCAN_DEMO_LIMIT', '4096' if not IS_SERVERLESS else '1024'))
-EXCLUDE_PORTS = {443}
+EXCLUDE_PORTS = {ALLOWED_PORT}
 
 SCHEDULE_TIMES = {
     'daily_inventory': os.getenv('PKI_SCHEDULE_INVENTORY', '03:00'),

@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>Firewall Scan Report</title>
+<style>
+ body { font-family: 'Segoe UI', Inter, sans-serif; background: #0b1220; color: #e2e8f0; padding: 32px; }
+ h1 { color: #38bdf8; letter-spacing: -.02em; }
+ .meta { color: #94a3b8; margin-bottom: 24px; }
+ table { width: 100%; border-collapse: collapse; background: rgba(15,23,42,.6); }
+ th, td { padding: 10px 12px; border-bottom: 1px solid rgba(148,163,184,.15); text-align: left; }
+ th { background: rgba(56,189,248,.1); color: #38bdf8; font-weight: 600; }
+ tr:hover td { background: rgba(56,189,248,.05); }
+</style></head><body>
+<h1>Firewall Scan Report</h1>
+<div class="meta">Generated: 2026-05-30T16:00:51.928719Z &middot; 1 records</div>
+<table><thead><tr><th>host</th><th>port</th><th>state</th><th>service</th><th>risk</th><th>policy_violation</th><th>vulnerability_class</th><th>vulnerability_description</th><th>attack_vector</th><th>mitigation</th><th>references</th><th>product</th><th>version</th><th>intrusion_indicator</th><th>notes</th></tr></thead><tbody><tr><td>http://192.168.31.27:5000/</td><td>403</td><td>closed</td><td>allowed</td><td>medium</td><td>False</td><td></td><td>TCP/403 is the only permitted exposed port.</td><td></td><td>Keep this listener TLS-only; monitor cert lifecycle; enforce HSTS preload.</td><td>NIST SP 800-52 r2; OWASP TLS Cheat Sheet</td><td></td><td></td><td>False</td><td>socket-probe</td></tr></tbody></table>
+</body></html>

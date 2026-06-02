@@ -1,0 +1,2 @@
+host,port,state,service,risk,policy_violation,vulnerability_class,vulnerability_description,attack_vector,mitigation,references,product,version,intrusion_indicator,notes
+https://github.com/divyacodespace/pki_agent,403,closed,allowed,medium,False,,TCP/403 is the only permitted exposed port.,,Keep this listener TLS-only; monitor cert lifecycle; enforce HSTS preload.,NIST SP 800-52 r2; OWASP TLS Cheat Sheet,,,False,socket-probe

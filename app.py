@@ -15,7 +15,7 @@ from pki_agent.ai_agent import AutonomousAgent, RiskEngine
 from pki_agent.audit import AuditLogger
 from pki_agent.compliance import aggregate as aggregate_compliance, FRAMEWORK_CONTROLS
 from pki_agent.config import (
-    EXPIRY_THRESHOLD_DAYS, CRITICAL_EXPIRY_DAYS,
+    ALLOWED_PORT, EXPIRY_THRESHOLD_DAYS, CRITICAL_EXPIRY_DAYS,
     SCAN_PORT_START, SCAN_PORT_END, REPORT_DIR, HSM_VENDOR,
 )
 from pki_agent.discovery import CertificateInventory
@@ -25,6 +25,7 @@ from pki_agent.reporting import ReportManager
 from pki_agent.scanner import NetworkScanner
 from pki_agent.scheduler import Scheduler
 from pki_agent.threat_model import ThreatModel
+from pki_agent import supply_chain as supply_chain_module
 
 
 # -- service wiring -----------------------------------------------------------
@@ -49,20 +50,32 @@ app.secret_key = os.getenv('PKI_FLASK_SECRET', 'pki-agentic-dev-key')
 def _dashboard_context():
     certs = inventory.load_inventory()
     alerts = risk_engine.evaluate_certificate_inventory(certs)
-    scan_alerts = risk_engine.evaluate_scan(scanner.load_last_scan())
-    decisions = agent.decide(certs, scanner.load_last_scan())
+    scan_results = scanner.load_last_scan()
+    scan_alerts = risk_engine.evaluate_scan(scan_results)
+    # run Bumblebee (best-effort) and surface findings
+    supply_findings = []
+    try:
+        supply_findings = supply_chain_module.run_bumblebee()
+        if supply_findings:
+            supply_chain_module.record_findings(supply_findings, audit)
+            supply_chain_module.persist_findings(supply_findings)
+    except Exception:
+        supply_findings = supply_chain_module.load_persisted()
+    decisions = agent.decide(certs, scan_results, supply_findings)
     return {
         'certs': certs,
         'alerts': alerts,
         'scan_alerts': scan_alerts,
         'decisions': decisions,
         'scan_meta': scanner.last_meta,
-        'scan_results': scanner.load_last_scan(),
+        'scan_results': scan_results,
+        'supply_findings': supply_findings,
         'summary': threat.summary(),
         'expiry_threshold': EXPIRY_THRESHOLD_DAYS,
         'critical_threshold': CRITICAL_EXPIRY_DAYS,
         'scan_range': (SCAN_PORT_START, SCAN_PORT_END),
         'hsm_vendor': HSM_VENDOR,
+        'allowed_port': ALLOWED_PORT,
     }
 
 
@@ -148,8 +161,20 @@ def hsm_page():
 def compliance_page():
     certs = inventory.load_inventory()
     scans = scanner.load_last_scan()
-    verdicts = aggregate_compliance(certs, scans)
+    supply_findings = supply_chain_module.load_persisted()
+    verdicts = aggregate_compliance(certs, scans, supply_findings)
     return render_template('compliance.html', verdicts=verdicts, frameworks=FRAMEWORK_CONTROLS)
+
+
+@app.route('/supply-chain')
+def supply_chain():
+    # show persisted findings (the UI triggers Bumblebee in dashboard context
+    # on a best-effort basis; here we surface persisted findings and mapped compliance)
+    findings = supply_chain_module.load_persisted()
+    certs = inventory.load_inventory()
+    scans = scanner.load_last_scan()
+    compliance = aggregate_compliance(certs, scans, findings)
+    return render_template('supply_chain.html', supply_findings=findings, compliance=compliance)
 
 
 @app.route('/audit')
@@ -184,7 +209,8 @@ def action_generate_expiry():
 @app.route('/actions/run-agent', methods=['POST'])
 def action_run_agent():
     certs = inventory.load_inventory()
-    decisions = agent.decide(certs, scanner.load_last_scan())
+    supply_findings = supply_chain_module.load_persisted()
+    decisions = agent.decide(certs, scanner.load_last_scan(), supply_findings)
     report_manager.generate_agent_decisions_report(decisions)
     flash(f'Agent emitted {len(decisions)} decisions.', 'success')
     return redirect(request.referrer or url_for('dashboard'))
@@ -235,7 +261,8 @@ def api_ports():
 
 @app.route('/api/decisions')
 def api_decisions():
-    decisions = agent.decide(inventory.load_inventory(), scanner.load_last_scan())
+    supply_findings = supply_chain_module.load_persisted()
+    decisions = agent.decide(inventory.load_inventory(), scanner.load_last_scan(), supply_findings)
     return jsonify([d.to_dict() for d in decisions])
 
 

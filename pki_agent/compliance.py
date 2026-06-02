@@ -65,12 +65,33 @@ def evaluate_scan(results: List[ScanResult]) -> Dict[str, str]:
     return verdicts
 
 
-def aggregate(certificates: List[CertificateRecord], scans: List[ScanResult]) -> Dict[str, dict]:
+def aggregate(
+    certificates: List[CertificateRecord],
+    scans: List[ScanResult],
+    supply_findings: List[dict] | None = None,
+) -> Dict[str, dict]:
+    """Aggregate pass/warn/fail across certificates, scans and optional
+    supply-chain findings.
+    """
     out: Dict[str, dict] = {}
     cert_results = [evaluate_certificate(c) for c in certificates]
     scan_verdict = evaluate_scan(scans)
+    supply_findings = supply_findings or []
+
+    # derive supply-chain impact per-framework: treat high/critical
+    # findings as warn/fail for supply-chain-related controls
+    supply_severities = [ (f.get('severity') or f.get('level') or 'high').lower() for f in supply_findings]
+    has_critical_supply = any(s in ('critical', 'high') for s in supply_severities)
+
     for framework, controls in FRAMEWORK_CONTROLS.items():
         statuses = [r[framework] for r in cert_results] + [scan_verdict.get(framework, 'pass')]
+        # map supply-chain findings to frameworks that include supply chain
+        if framework == 'NIST 800-53' and has_critical_supply:
+            statuses.append('fail')
+        if framework == 'PCI-DSS' and has_critical_supply:
+            # PCI Req 6.3 relates to vulnerable components
+            statuses.append('warn')
+
         if 'fail' in statuses:
             verdict = 'fail'
         elif 'warn' in statuses:
@@ -82,5 +103,6 @@ def aggregate(certificates: List[CertificateRecord], scans: List[ScanResult]) ->
             'controls': controls,
             'certificate_failures': sum(1 for r in cert_results if r[framework] == 'fail'),
             'certificate_warnings': sum(1 for r in cert_results if r[framework] == 'warn'),
+            'supply_findings_count': len(supply_findings),
         }
     return out

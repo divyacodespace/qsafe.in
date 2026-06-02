@@ -91,21 +91,61 @@ class AutonomousAgent:
         self,
         certs: Iterable[CertificateRecord],
         scans: Iterable[ScanResult],
+        supply_findings: Iterable[dict] | None = None,
     ) -> List[AgentDecision]:
         decisions: List[AgentDecision] = []
         certs = list(certs)
         scans = list(scans)
+        supply_findings = list(supply_findings or [])
         for cert in certs:
             decisions.extend(self._decide_certificate(cert))
         for scan in scans:
             d = self._decide_port(scan)
             if d:
                 decisions.append(d)
+        # supply-chain findings influence agent decisions
+        for f in supply_findings:
+            d = self._decide_supply(f)
+            if d:
+                if isinstance(d, list):
+                    decisions.extend(d)
+                else:
+                    decisions.append(d)
         decisions.append(self._decide_quantum_posture(certs))
         self.decisions = decisions
         if self.audit:
             self.audit.record('Agent decisions emitted', metadata={'count': len(decisions)})
         return decisions
+
+    def _decide_supply(self, finding: dict):
+        """Translate a Bumblebee finding into one or more AgentDecision
+        objects. The finding schema can vary; we defensively map severity
+        and package identifiers to actions.
+        """
+        sev = (finding.get('severity') or finding.get('level') or 'high').lower()
+        pkg = finding.get('package') or finding.get('component') or finding.get('name') or 'unknown'
+        title = finding.get('title') or finding.get('id') or pkg
+        desc = finding.get('description') or finding.get('details') or ''
+        rationale = f"Supply-chain finding: {title} — {desc}".strip()
+        if sev in ('critical', 'high'):
+            return AgentDecision(
+                action='quarantine_package',
+                target=str(pkg),
+                rationale=rationale,
+                confidence=0.9,
+                severity='critical' if sev == 'critical' else 'high',
+                automated=False,
+                metadata={'finding': finding},
+            )
+        return AgentDecision(
+            action='alert_supply_chain',
+            target=str(pkg),
+            rationale=rationale,
+            confidence=0.75,
+            severity='medium',
+            automated=False,
+            metadata={'finding': finding},
+        )
 
     def _decide_certificate(self, cert: CertificateRecord) -> List[AgentDecision]:
         out: List[AgentDecision] = []

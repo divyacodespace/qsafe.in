@@ -19,6 +19,7 @@ from typing import List, Optional, Tuple
 
 from .audit import AuditLogger
 from .config import (
+    ALLOWED_PORT,
     SCAN_DEMO_LIMIT,
     SCAN_PORT_END,
     SCAN_PORT_START,
@@ -32,10 +33,6 @@ try:
     import nmap  # type: ignore
 except ImportError:
     nmap = None
-
-
-# The single permitted listener.
-ALLOWED_PORT = 443
 
 
 def _service_for(port: int) -> Optional[str]:
@@ -62,18 +59,14 @@ class NetworkScanner:
     def classify(self, port: int, state: str) -> Tuple[str, bool, bool]:
         """Return (risk_label, intrusion_indicator, policy_violation).
 
-        Policy: only TCP/443 may be open. Anything else that is open or
-        filtered is a policy violation that must appear in the report.
+        Policy: only ``ALLOWED_PORT`` (configurable via ``PKI_ALLOWED_PORT``)
+        may be open. Anything else that is open or filtered is a policy
+        violation that must appear in the report.
         """
         if port == ALLOWED_PORT:
             if state == 'open':
                 return 'low', False, False
-            if state == 'closed':
-                # HTTPS is the *expected* listener — closed is itself a finding,
-                # though benign for an arbitrary scan target.
-                return 'medium', False, False
-            return 'medium', False, False
-        # Any non-443 port:
+            return 'medium', False, False  # closed or filtered on the only allowed port
         if state == 'open':
             return 'critical', True, True
         if state == 'filtered':
@@ -87,13 +80,13 @@ class NetworkScanner:
         if port == ALLOWED_PORT:
             return ScanResult(
                 host=host, port=port, state=state,
-                service='https', product=product, version=version,
-                risk=risk, notes=notes or 'expected HTTPS listener (policy: only 443 allowed)',
+                service='allowed', product=product, version=version,
+                risk=risk, notes=notes or f'expected listener (policy: only port {ALLOWED_PORT} allowed)',
                 intrusion_indicator=intrusion, policy_violation=violation,
                 vulnerability_class=None,
-                vulnerability_description='HTTPS is the only permitted exposed service.',
+                vulnerability_description=f'TCP/{ALLOWED_PORT} is the only permitted exposed port.',
                 attack_vector=None,
-                mitigation='Maintain TLS 1.2+; enforce HSTS preload; monitor cert lifecycle.',
+                mitigation='Keep this listener TLS-only; monitor cert lifecycle; enforce HSTS preload.',
                 references=['NIST SP 800-52 r2', 'OWASP TLS Cheat Sheet'],
             )
         if state == 'closed':

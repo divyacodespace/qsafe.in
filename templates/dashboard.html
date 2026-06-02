@@ -141,13 +141,13 @@
         <header class="card-header">
             <div>
                 <h3>Firewall snapshot</h3>
-                <p>{% if scan_meta %}Policy: <code>only tcp/443 allowed</code> · {{ scan_meta.host }} ({{ scan_meta.engine }}){% else %}No scan yet — run one from Firewall &amp; Ports.{% endif %}</p>
+                <p>{% if scan_meta %}Policy: <code>only tcp/{{ allowed_port }} allowed</code> · {{ scan_meta.host }} ({{ scan_meta.engine }}){% else %}No scan yet — run one from Firewall &amp; Ports.{% endif %}</p>
             </div>
             <a class="btn btn-ghost" href="{{ url_for('ports') }}">Open scanner →</a>
         </header>
         {% if scan_results %}
             <div class="metric-row">
-                <div><span>443 state</span><strong class="text-{% if scan_meta.allowed_port_state == 'open' %}pass{% else %}warn{% endif %}">{{ scan_meta.allowed_port_state }}</strong></div>
+                <div><span>{{ allowed_port }} state</span><strong class="text-{% if scan_meta.allowed_port_state == 'open' %}pass{% else %}warn{% endif %}">{{ scan_meta.allowed_port_state }}</strong></div>
                 <div><span>Open</span><strong>{{ scan_meta.open }}</strong></div>
                 <div><span>Policy violations</span><strong class="text-rose">{{ scan_meta.policy_violations }}</strong></div>
                 <div><span>Elapsed</span><strong>{{ scan_meta.elapsed_seconds }}s</strong></div>
@@ -160,7 +160,7 @@
                         <span class="pill pill-{{ r.risk }}">{{ r.state }}</span>
                     </li>
                 {% else %}
-                    <li class="muted">No policy violations — only 443 is reachable.</li>
+                    <li class="muted">No policy violations — only {{ allowed_port }} is reachable.</li>
                 {% endfor %}
             </ul>
         {% else %}

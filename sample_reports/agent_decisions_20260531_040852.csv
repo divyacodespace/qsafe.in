@@ -1,0 +1,14 @@
+decided_at,action,target,severity,confidence,automated,rationale
+2026-05-31T04:08:52.115192Z,replace_certificate,api.fintrust-bank.com,critical,0.99,True,Expired 21 day(s) ago — production traffic is at risk.
+2026-05-31T04:08:52.115209Z,plan_pqc_migration,api.fintrust-bank.com,medium,0.85,False,RSA-2048 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-31T04:08:52.115225Z,replace_certificate,payments.fintrust-bank.com,critical,0.99,True,Expired 1 day(s) ago — production traffic is at risk.
+2026-05-31T04:08:52.115238Z,schedule_renewal,portal.healthcorp.example,high,0.9,False,Expires in 25 day(s); within 45-day window.
+2026-05-31T04:08:52.115247Z,plan_pqc_migration,portal.healthcorp.example,medium,0.85,False,RSA-2048 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-31T04:08:52.115258Z,schedule_renewal,secure-ftp.logistico.example,high,0.9,False,Expires in 35 day(s); within 45-day window.
+2026-05-31T04:08:52.115268Z,plan_pqc_migration,secure-ftp.logistico.example,medium,0.85,False,EC-secp384r1-384 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-31T04:08:52.115279Z,plan_pqc_migration,legacy.intranet.example,medium,0.85,False,RSA-1024 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-31T04:08:52.115291Z,plan_pqc_migration,edge.fintrust-bank.com,medium,0.85,False,EC-secp256r1-256 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-31T04:08:52.115301Z,plan_pqc_migration,www.cloudflare.com,medium,0.85,False,EC-secp256r1-256 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-31T04:08:52.115311Z,plan_pqc_migration,www.google.com,medium,0.85,False,EC-secp256r1-256 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-31T04:08:52.115321Z,plan_pqc_migration,www.microsoft.com,medium,0.85,False,RSA-2048 is broken by Shor; queue hybrid ML-KEM/ML-DSA pilot.
+2026-05-31T04:08:52.115355Z,accelerate_pqc_migration,estate,critical,0.88,False,8 of 12 certificates are Shor-vulnerable (67%). Prioritize CA hierarchy and externally-facing endpoints.
