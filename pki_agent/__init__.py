@@ -1,1 +1,1 @@
-"""Enterprise PKI & CLM agent package."""
+"""Q Safe package for quantum-safe certificate lifecycle management."""

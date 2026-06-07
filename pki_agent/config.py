@@ -1,4 +1,4 @@
-"""Central configuration for the PKI agentic AI system.
+"""Central configuration for the Q Safe system by DataRevealAI.
 
 All tunables, paths, and integration endpoints are kept here so individual
 modules stay free of hard-coded values. Environment variables override

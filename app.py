@@ -1,4 +1,4 @@
-"""Flask web UI + JSON API for the PKI agentic AI system."""
+"""Flask web UI + JSON API for the Q Safe system by DataRevealAI."""
 
 from __future__ import annotations
 

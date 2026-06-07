@@ -1,4 +1,4 @@
-// Lightweight enhancements for the PKI Agentic UI.
+// Lightweight enhancements for the Q Safe UI.
 // Keeps the dashboard reactive without bringing in a frontend framework.
 
 (function () {
@@ -10,7 +10,7 @@
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!data) return;
-        document.title = `(${data.expiring_within_threshold} expiring) PKI Agentic AI`;
+        document.title = `(${data.expiring_within_threshold} expiring) Q Safe · DataRevealAI`;
         const pulse = document.querySelector('.pulse');
         if (pulse) {
           pulse.style.background = data.critical_alerts.length ? 'var(--bad)' : 'var(--good)';
@@ -37,11 +37,11 @@
     const target = parseFloat(node.textContent);
     if (Number.isNaN(target)) return;
     const start = performance.now();
-    const duration = 700;
+    const duration = 900;
     const initial = 0;
     const tick = (now) => {
       const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
+      const eased = 1 - Math.pow(1 - t, 4);
       node.textContent = Math.round(initial + (target - initial) * eased).toString();
       if (t < 1) requestAnimationFrame(tick);
       else node.textContent = String(target);

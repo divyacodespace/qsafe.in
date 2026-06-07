@@ -1,4 +1,4 @@
-"""Agentic AI orchestration.
+"""Autonomous AI orchestration for Q Safe.
 
 The risk engine evaluates certificates and firewall results, and the
 agent decides which actions to take (renew/replace, alert, escalate,

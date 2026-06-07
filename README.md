@@ -1,4 +1,4 @@
-# PKI Agentic AI System
+# Q Safe by DataRevealAI
 
 An enterprise-grade Python agentic AI for **PKI & certificate lifecycle management (CLM/LCM)** — similar in spirit to Venafi — built around **TLS/SSL discovery**, an **Entrust Shield HSM** root of trust, **Shor's-algorithm-aware** quantum threat scoring, firewall/port scanning, compliance reporting and a creative web UI.
 
@@ -178,6 +178,8 @@ vercel dev          # serves on http://localhost:3000 emulating the production r
 - A full `0–65000` socket scan against an arbitrary host is heavy. The scanner caps the **socket-engine** at `PKI_SCAN_DEMO_LIMIT` (4096 ports) so the web UI stays responsive; install `nmap` to run the entire range with service detection.
 - Live TLS discovery is optional — the system works fully offline with the JSON inventory.
 - Running the agent against external hosts must comply with your acceptable-use policy and applicable law. Scan only systems you are authorized to assess.
-#   p k i _ a g e n t  
- #   p k i _ a g e n t  
+#   p k i _ a g e n t 
+ 
+ #   p k i _ a g e n t 
+ 
  

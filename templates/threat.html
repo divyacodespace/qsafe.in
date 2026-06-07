@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
-{% block title %}Quantum & Shor · PKI Agentic AI{% endblock %}
-{% block heading %}Quantum threat &amp; Shor exposure{% endblock %}
-{% block subheading %}Per-certificate scoring under Shor's algorithm with PQC migration recommendations.{% endblock %}
+{% block title %}Quantum · Q Safe · DataRevealAI{% endblock %}
+{% block heading %}Quantum threat &amp; exposure{% endblock %}
+{% block subheading %}Per-certificate quantum scoring with PQC migration recommendations.{% endblock %}
 
 {% block content %}
 <section class="card threat-hero">
@@ -9,7 +9,7 @@
         <h3>{{ summary.model }}</h3>
         <p class="muted">{{ summary.quantum_threat }}</p>
         <div class="chip-row">
-            <span class="chip chip--accent">Shor-aware</span>
+            <span class="chip chip--accent">Quantum-aware</span>
             <span class="chip">PQC roadmap</span>
             <span class="chip">HSM-bound keys</span>
         </div>
@@ -42,14 +42,14 @@
 <section class="card">
     <header class="card-header">
         <div>
-            <h3>Per-certificate Shor exposure</h3>
+            <h3>Per-certificate quantum exposure</h3>
             <p>Higher score = greater theoretical break risk under a cryptanalytically-relevant quantum computer.</p>
         </div>
     </header>
     <div class="table-wrap">
         <table class="data-table">
             <thead>
-                <tr><th>Domain</th><th>Algorithm</th><th>Classification</th><th>Score</th><th>Qubits (Shor)</th><th>Rationale</th><th>Mitigation</th></tr>
+                <tr><th>Domain</th><th>Algorithm</th><th>Classification</th><th>Score</th><th>Estimated qubits</th><th>Rationale</th><th>Mitigation</th></tr>
             </thead>
             <tbody>
                 {% for item in scored %}

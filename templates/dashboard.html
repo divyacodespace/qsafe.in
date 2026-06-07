@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
-{% block title %}Dashboard · PKI Agentic AI{% endblock %}
+{% block title %}Dashboard · Q Safe · DataRevealAI{% endblock %}
 {% block heading %}Mission control{% endblock %}
-{% block subheading %}Live posture across the PKI estate — certificates, firewall, agent decisions.{% endblock %}
+{% block subheading %}Live posture across the quantum-safe estate — certificates, firewall, agent decisions.{% endblock %}
 
 {% block content %}
 <section class="kpi-grid">
@@ -16,7 +16,7 @@
         <footer>Critical window: {{ critical_threshold }} days</footer>
     </article>
     <article class="kpi kpi--gradient-rose">
-        <header><span>Shor-vulnerable certs</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></header>
+        <header><span>Quantum-vulnerable certs</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></header>
         <strong>{{ quantum_vulnerable|length }}</strong>
         <footer>{{ ((quantum_vulnerable|length / (certs|length or 1)) * 100)|round(0)|int }}% of estate</footer>
     </article>
@@ -34,7 +34,7 @@
                 <h3>Threat model</h3>
                 <p>{{ summary.model }} · {{ summary.focus }}</p>
             </div>
-            <span class="chip chip--accent">Shor-aware</span>
+            <span class="chip chip--accent">Quantum-aware</span>
         </header>
         <p class="muted">{{ summary.quantum_threat }}</p>
         <ul class="bullets">

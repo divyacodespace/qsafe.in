@@ -1,0 +1,13 @@
+domain,issuer,not_after,days_remaining,status,key_algorithm,key_size,quantum_risk,recommendations
+api.fintrust-bank.com,Entrust Certification Authority - L1K,2026-05-10T23:59:59Z,-27,expired,RSA,2048,high,replace immediately
+payments.fintrust-bank.com,Entrust Certification Authority - L1K,2026-05-30T23:59:59Z,-7,expired,RSA,4096,medium,replace immediately
+portal.healthcorp.example,DigiCert TLS RSA SHA256 2020 CA1,2026-06-25T23:59:59Z,19,expiring,RSA,2048,high,renew now
+secure-ftp.logistico.example,Internal Logistico Issuing CA,2026-07-05T23:59:59Z,29,expiring,EC-secp384r1,384,high,renew now
+mfa.fintrust-bank.com,Entrust Certification Authority - L1K,2026-08-25T23:59:59Z,80,active,RSA,3072,medium,monitor
+legacy.intranet.example,Old Internal Root CA,2026-11-15T23:59:59Z,162,active,RSA,1024,critical,monitor
+api-gateway.fintrust-bank.com,Entrust PQC Pilot CA,2027-01-20T23:59:59Z,228,active,ML-DSA-87,4896,quantum-safe,monitor
+edge.fintrust-bank.com,Entrust Certification Authority - L1K,2027-05-25T23:59:59Z,353,active,EC-secp256r1,256,high,monitor
+www.cloudflare.com,WE1,2026-08-05T17:54:15Z,60,active,EC-secp256r1,256,high,monitor
+www.google.com,WE2,2026-07-30T15:54:12Z,54,active,EC-secp256r1,256,high,monitor
+www.microsoft.com,Microsoft TLS G2 RSA CA OCSP 04,2027-01-17T19:55:21Z,225,active,RSA,2048,high,monitor
+www.entrust.com,Sectigo Public Server Authentication CA EV R36,2026-11-24T23:59:59Z,171,active,RSA,4096,medium,monitor

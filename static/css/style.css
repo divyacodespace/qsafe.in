@@ -1,6 +1,9 @@
 /* PKI Agentic AI — creative dashboard styling */
 
 :root {
+  --ease: cubic-bezier(.2,.9,.2,1);
+  --transition: 280ms;
+  --fast: 160ms;
   --bg-0: #060814;
   --bg-1: #0b1226;
   --panel: rgba(15, 23, 42, 0.66);
@@ -26,11 +29,14 @@
 
 html, body {
   margin: 0; padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   background: var(--bg-0);
   color: var(--text);
-  font-size: 14.5px;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.62;
   overflow-x: hidden;
 }
 
@@ -76,7 +82,23 @@ body { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
 .brand h1 { margin: 0; font-size: 1.25rem; letter-spacing: -0.02em; font-weight: 800; }
 .brand h1 span { color: var(--accent); margin-left: 4px; font-weight: 600; }
 .brand p { margin: 2px 0 0; color: var(--muted); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
-.brand-mark { position: relative; width: 36px; height: 36px; }
+.brand-mark { position: relative; width: 40px; height: 40px; }
+.brand-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(56,189,248,0.95);
+  box-shadow: 0 0 16px rgba(56,189,248,0.25);
+}
+.brand-tail {
+  position: absolute;
+  width: 12px;
+  height: 22px;
+  background: linear-gradient(180deg, rgba(236,72,153,0.95), rgba(56,189,248,0.95));
+  border-radius: 8px 8px 0 0;
+  right: 5px;
+  bottom: 4px;
+  transform: rotate(45deg);
+}
 .brand-orb {
   position: absolute; inset: 0; border-radius: 50%;
   background: conic-gradient(from 120deg, #38bdf8, #a855f7, #f472b6, #38bdf8);
@@ -96,8 +118,8 @@ body { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
   text-decoration: none;
   border-radius: var(--radius-sm);
   font-weight: 500;
-  font-size: 0.92rem;
-  transition: background .2s ease, transform .2s ease, color .2s ease;
+  font-size: 0.94rem;
+  transition: background var(--transition) var(--ease), transform var(--fast) var(--ease), color var(--transition) var(--ease);
 }
 .sidebar nav a svg { width: 18px; height: 18px; opacity: .8; }
 .sidebar nav a:hover { background: rgba(56,189,248,.08); transform: translateX(2px); }
@@ -155,11 +177,11 @@ footer {
   border-radius: 999px;
   background: rgba(15,23,42,.6);
   color: var(--text);
-  font-weight: 600; font-size: 0.85rem; letter-spacing: 0.01em;
-  cursor: pointer; transition: transform .15s ease, background .2s ease, box-shadow .2s ease, border-color .2s ease;
+  font-weight: 600; font-size: 0.95rem; letter-spacing: 0.01em;
+  cursor: pointer; transition: transform var(--fast) var(--ease), background var(--transition) var(--ease), box-shadow var(--transition) var(--ease), border-color var(--transition) var(--ease);
   text-decoration: none;
 }
-.btn:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+.btn:hover { transform: translateY(-2px); border-color: var(--border-strong); }
 .btn-primary {
   background: linear-gradient(120deg, #38bdf8, #a855f7);
   border-color: transparent;
@@ -180,9 +202,9 @@ footer {
   backdrop-filter: blur(18px);
   position: relative;
   overflow: hidden;
-  transition: transform .2s ease, border-color .2s ease;
+  transition: transform var(--transition) var(--ease), border-color var(--transition) var(--ease);
 }
-.card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.card:hover { border-color: var(--border-strong); transform: translateY(-4px); }
 .card::before {
   content: '';
   position: absolute; inset: 0; pointer-events: none;
