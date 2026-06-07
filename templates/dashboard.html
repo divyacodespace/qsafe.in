@@ -27,6 +27,37 @@
     </article>
 </section>
 
+<section class="card">
+    <header class="card-header">
+        <div>
+            <h3>Statistics</h3>
+            <p>Visual summary of certificate posture and recent alerts.</p>
+        </div>
+    </header>
+    <div class="grid-2" style="grid-template-columns: 1fr 1fr; gap: 18px;">
+        <div class="card">
+            <canvas id="chart-status" height="140"></canvas>
+        </div>
+        <div class="card">
+            <canvas id="chart-severity" height="140"></canvas>
+        </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+        <canvas id="chart-quantum" height="120"></canvas>
+    </div>
+
+    <script>
+        window.__DASHBOARD_DATA__ = {
+            certs: {{ certs|length }},
+            expiring: {{ expiring|length }},
+            expired: {{ expired|length }},
+            quantum_vulnerable: {{ quantum_vulnerable|length }},
+            severity_counts: {{ severity_counts|tojson }},
+            decisions: {{ decisions|length }},
+        };
+    </script>
+</section>
+
 <section class="grid-2">
     <article class="card">
         <header class="card-header">

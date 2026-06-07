@@ -19,8 +19,7 @@
     <aside class="sidebar">
         <div class="brand">
             <div class="brand-mark qsafe-logo">
-                <span class="brand-ring"></span>
-                <span class="brand-tail"></span>
+                <img class="brand-img" src="{{ url_for('static', filename='img/qsafe_logo.png') }}" alt="Q Safe logo" />
             </div>
             <div>
                 <h1>Q<span>Safe</span></h1>
@@ -110,6 +109,7 @@
             <span>Threshold: <b>{{ expiry_threshold or 45 }} days</b> · Scan range <b>{{ scan_range[0] if scan_range else 0 }}-{{ scan_range[1] if scan_range else 65000 }}</b></span>
         </footer>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
