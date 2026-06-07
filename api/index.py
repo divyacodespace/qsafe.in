@@ -1,25 +1,28 @@
-"""Vercel entrypoint.
+"""Vercel serverless entrypoint.
 
-Re-exports the Flask app so the @vercel/python builder can serve it.
-Every HTTP route in :mod:`app` (Dashboard, /api/status, /ports, etc.) is
-reachable through this single handler — `vercel.json` rewrites all paths
-here.
+Vercel's @vercel/python builder imports this module and looks for a WSGI
+callable named `app`.  All we do here is import the Flask application that
+lives in app.py at the repo root and re-export it under that name.
+
+The environment variable VERCEL=1 is set in vercel.json, so config.py will
+automatically:
+  - redirect every write to /tmp/pki_agent/
+  - copy seed files (inventory.json, hosts.json) to /tmp on cold start
+  - disable the background scheduler
 """
 
-import os
 import sys
+import os
 from pathlib import Path
 
-# Add the project root to sys.path so `import app` works regardless of
-# the working directory the runtime chooses.
-ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+# Make the repo root importable (Vercel sets cwd to the repo root, but
+# adding it explicitly makes the entrypoint robust to edge cases).
+_repo_root = Path(__file__).parent.parent
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
 
-# Force serverless mode even if the platform doesn't set VERCEL=1.
-os.environ.setdefault('VERCEL', '1')
+# Import the Flask app — this triggers config.py which handles /tmp setup.
+from app import app  # noqa: E402  (import not at top of file)
 
-from app import app  # noqa: E402  Flask WSGI application
-
-# @vercel/python looks for a WSGI-compatible callable named `app`.
-__all__ = ['app']
+# Vercel looks for a symbol called `app` in this module.
+__all__ = ["app"]

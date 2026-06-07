@@ -1,84 +1,137 @@
-"""Central configuration for the Q Safe system by DataRevealAI.
+"""Centralised configuration for the PKI Agentic system.
 
-All tunables, paths, and integration endpoints are kept here so individual
-modules stay free of hard-coded values. Environment variables override
-sensible defaults to keep the system portable across dev, staging and prod.
+All tunables come from environment variables so the same codebase runs both
+locally and on serverless platforms (Vercel, Lambda, etc.) without code changes.
 
-Serverless support: when running on Vercel / AWS Lambda the project
-directory is read-only, so writable artifacts (audit log, generated
-reports, mutable inventory) are redirected to ``/tmp/pki_agent/...`` and
-the seed data is copied over on cold start.
+On Vercel only /tmp is writable.  When IS_SERVERLESS is True every path that
+the application writes to is remapped under TMP_BASE, and the bundled seed
+files (data/inventory.json, data/hosts.json) are copied there on cold start so
+the app always has something to work with.
 """
+
+from __future__ import annotations
 
 import os
 import shutil
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# ---------------------------------------------------------------------------
+# Serverless detection
+# ---------------------------------------------------------------------------
 
-IS_SERVERLESS = bool(os.getenv('VERCEL') or os.getenv('AWS_LAMBDA_FUNCTION_NAME'))
+IS_SERVERLESS: bool = os.getenv("VERCEL", "") == "1" or os.getenv("AWS_LAMBDA_FUNCTION_NAME", "") != ""
 
-# Read-only seed directories that always live alongside the source.
-SEED_DATA_DIR = BASE_DIR / 'data'
-SEED_REPORT_DIR = BASE_DIR / 'sample_reports'
+# ---------------------------------------------------------------------------
+# Base directories
+# ---------------------------------------------------------------------------
+
+# Repo root — the directory that contains this package
+_REPO_ROOT = Path(__file__).parent.parent.resolve()
 
 if IS_SERVERLESS:
-    _RUNTIME_ROOT = Path('/tmp/pki_agent')
-    DATA_DIR = _RUNTIME_ROOT / 'data'
-    REPORT_DIR = _RUNTIME_ROOT / 'sample_reports'
-    LOG_DIR = _RUNTIME_ROOT / 'logs'
-    for _d in (DATA_DIR, REPORT_DIR, LOG_DIR):
-        _d.mkdir(parents=True, exist_ok=True)
-    # Cold-start seeding so the dashboard has data the first time it loads.
-    for _src_dir, _dst_dir in ((SEED_DATA_DIR, DATA_DIR), (SEED_REPORT_DIR, REPORT_DIR)):
-        if _src_dir.exists():
-            for _src in _src_dir.iterdir():
-                _dst = _dst_dir / _src.name
-                if _src.is_file() and not _dst.exists():
-                    try:
-                        shutil.copy2(_src, _dst)
-                    except OSError:
-                        pass
+    # /tmp is the only writable location on Vercel
+    TMP_BASE = Path("/tmp/pki_agent")
 else:
-    DATA_DIR = SEED_DATA_DIR
-    REPORT_DIR = SEED_REPORT_DIR
-    LOG_DIR = BASE_DIR / 'logs'
-    for _d in (DATA_DIR, REPORT_DIR, LOG_DIR):
-        _d.mkdir(parents=True, exist_ok=True)
+    TMP_BASE = _REPO_ROOT / ".runtime"
 
-AUDIT_LOG = LOG_DIR / 'audit.log'
-INVENTORY_FILE = DATA_DIR / 'inventory.json'
-HOSTS_FILE = DATA_DIR / 'hosts.json'
+# Ensure writable directories exist at import time
+for _d in ("logs", "data", "sample_reports"):
+    (TMP_BASE / _d).mkdir(parents=True, exist_ok=True)
 
-EXPIRY_THRESHOLD_DAYS = int(os.getenv('PKI_EXPIRY_DAYS', '45'))
-CRITICAL_EXPIRY_DAYS = int(os.getenv('PKI_CRITICAL_DAYS', '7'))
+# ---------------------------------------------------------------------------
+# Seed-file copy (serverless cold-start bootstrap)
+# ---------------------------------------------------------------------------
 
-# The single port permitted by the firewall policy. Override with
-# PKI_ALLOWED_PORT to switch to e.g. HTTPS/443.
-ALLOWED_PORT = int(os.getenv('PKI_ALLOWED_PORT', '403'))
+def _copy_seed(src_rel: str, dst: Path) -> None:
+    """Copy a bundled seed file to the writable /tmp tree if it doesn't exist."""
+    if dst.exists():
+        return
+    src = _REPO_ROOT / src_rel
+    if src.exists():
+        shutil.copy2(src, dst)
 
-SCAN_PORT_START = int(os.getenv('PKI_PORT_START', '0'))
-SCAN_PORT_END = int(os.getenv('PKI_PORT_END', '65000' if not IS_SERVERLESS else '1024'))
-SCAN_PORT_RANGE = (SCAN_PORT_START, SCAN_PORT_END)
-SCAN_TIMEOUT = float(os.getenv('PKI_SCAN_TIMEOUT', '0.4' if not IS_SERVERLESS else '0.2'))
-SCAN_WORKERS = int(os.getenv('PKI_SCAN_WORKERS', '256' if not IS_SERVERLESS else '64'))
-SCAN_DEMO_LIMIT = int(os.getenv('PKI_SCAN_DEMO_LIMIT', '4096' if not IS_SERVERLESS else '1024'))
-EXCLUDE_PORTS = {ALLOWED_PORT}
+
+if IS_SERVERLESS:
+    _copy_seed("data/inventory.json", TMP_BASE / "data" / "inventory.json")
+    _copy_seed("data/hosts.json",     TMP_BASE / "data" / "hosts.json")
+
+# ---------------------------------------------------------------------------
+# Resolved paths (always writable)
+# ---------------------------------------------------------------------------
+
+LOG_DIR:     Path = TMP_BASE / "logs"
+REPORT_DIR:  Path = TMP_BASE / "sample_reports"
+DATA_DIR:    Path = TMP_BASE / "data"
+
+AUDIT_LOG_PATH:  Path = LOG_DIR  / "audit.log"
+AUDIT_LOG:       Path = AUDIT_LOG_PATH
+INVENTORY_PATH:  Path = DATA_DIR / "inventory.json"
+INVENTORY_FILE:  Path = INVENTORY_PATH
+HOSTS_PATH:      Path = DATA_DIR / "hosts.json"
+HOSTS_FILE:      Path = HOSTS_PATH
+
+# ---------------------------------------------------------------------------
+# PKI / certificate tunables
+# ---------------------------------------------------------------------------
+
+EXPIRY_THRESHOLD_DAYS: int = int(os.getenv("PKI_EXPIRY_DAYS",    "45"))
+CRITICAL_EXPIRY_DAYS:  int = int(os.getenv("PKI_CRITICAL_DAYS",   "7"))
+
+# ---------------------------------------------------------------------------
+# Firewall / port-scan tunables
+# ---------------------------------------------------------------------------
+
+# On Vercel we cap the scan range to keep the function inside the 30-second budget.
+_default_port_start = "0"
+_default_port_end   = "1024" if IS_SERVERLESS else "65000"
+_default_timeout    = "0.2"  if IS_SERVERLESS else "0.4"
+_default_workers    = "64"   if IS_SERVERLESS else "256"
+
+SCAN_PORT_START:   int   = int(os.getenv("PKI_PORT_START",    _default_port_start))
+SCAN_PORT_END:     int   = int(os.getenv("PKI_PORT_END",      _default_port_end))
+SCAN_TIMEOUT:      float = float(os.getenv("PKI_SCAN_TIMEOUT", _default_timeout))
+SCAN_WORKERS:      int   = int(os.getenv("PKI_SCAN_WORKERS",  _default_workers))
+SCAN_DEMO_LIMIT: int = int(os.getenv("PKI_SCAN_DEMO_LIMIT", "16"))
+
+# Only TCP/443 is permitted; every other reachable port is a policy violation.
+ALLOWED_PORT: int = 443
+
+# ---------------------------------------------------------------------------
+# HSM
+# ---------------------------------------------------------------------------
+
+HSM_ENDPOINT: str = os.getenv("HSM_ENDPOINT", "https://hsm.local.example")
+HSM_API_KEY:  str = os.getenv("HSM_API_KEY",  "")
+HSM_VENDOR:   str = os.getenv("HSM_VENDOR",   "Entrust Shield")
+
+# ---------------------------------------------------------------------------
+# Notifications
+# ---------------------------------------------------------------------------
+
+NOTIFY_WEBHOOK: str = os.getenv("PKI_NOTIFY_WEBHOOK", "")
+NOTIFY_EMAIL: str = os.getenv("PKI_NOTIFY_EMAIL", "")
+
+QUANTUM_SAFE_ALGORITHMS = [
+    'ML-KEM',
+    'ML-DSA',
+    'SLH-DSA',
+    'DILITHIUM',
+    'KYBER',
+    'FALCON',
+    'SPHINCS',
+]
+
+# ---------------------------------------------------------------------------
+# Scheduler
+# ---------------------------------------------------------------------------
 
 SCHEDULE_TIMES = {
-    'daily_inventory': os.getenv('PKI_SCHEDULE_INVENTORY', '03:00'),
-    'weekly_firewall': os.getenv('PKI_SCHEDULE_FIREWALL', '04:00'),
+    'daily_inventory': os.getenv('PKI_SCHEDULE_DAILY_INVENTORY', '04:00'),
+    'weekly_firewall': os.getenv('PKI_SCHEDULE_WEEKLY_FIREWALL', '02:00'),
 }
 
-HSM_ENDPOINT = os.getenv('HSM_ENDPOINT', 'https://hsm.local.example')
-HSM_API_KEY = os.getenv('HSM_API_KEY', '')
-HSM_VENDOR = os.getenv('HSM_VENDOR', 'Entrust Shield HSM')
+# ---------------------------------------------------------------------------
+# Flask
+# ---------------------------------------------------------------------------
 
-NOTIFY_WEBHOOK = os.getenv('PKI_NOTIFY_WEBHOOK', '')
-NOTIFY_EMAIL = os.getenv('PKI_NOTIFY_EMAIL', '')
-
-COMPLIANCE_FRAMEWORKS = ('PCI-DSS', 'HIPAA', 'ISO 27001', 'SOC 2', 'NIST 800-53')
-
-QUANTUM_SAFE_ALGORITHMS = {
-    'ML-DSA', 'ML-KEM', 'Dilithium', 'Kyber', 'Falcon', 'SPHINCS+', 'XMSS', 'LMS',
-}
+FLASK_SECRET: str = os.getenv("PKI_FLASK_SECRET", "pki-agentic-dev-key")

@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Logs (runtime-generated)
+logs/audit.log
+logs/*.log
+
+# Runtime-generated reports (sample_reports/ seed files are OK to commit,
+# but runtime outputs should not be tracked)
+sample_reports/*_runtime_*
+sample_reports/*.pdf
+sample_reports/*.html
+
+# Vercel
+.vercel/
+
+# Env secrets
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db

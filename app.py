@@ -1,4 +1,4 @@
-"""Flask web UI + JSON API for the Q Safe system by DataRevealAI."""
+"""Flask web UI + JSON API for the PKI Agentic AI System."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from pki_agent.compliance import aggregate as aggregate_compliance, FRAMEWORK_CO
 from pki_agent.config import (
     ALLOWED_PORT, EXPIRY_THRESHOLD_DAYS, CRITICAL_EXPIRY_DAYS,
     SCAN_PORT_START, SCAN_PORT_END, REPORT_DIR, HSM_VENDOR,
+    FLASK_SECRET, IS_SERVERLESS,
 )
 from pki_agent.discovery import CertificateInventory
 from pki_agent.hsm_integration import get_hsm_client, HSMIntegrationError
@@ -27,32 +28,31 @@ from pki_agent.scheduler import Scheduler
 from pki_agent.threat_model import ThreatModel
 from pki_agent import supply_chain as supply_chain_module
 
-
 # -- service wiring -----------------------------------------------------------
 
-audit = AuditLogger()
-inventory = CertificateInventory(audit_logger=audit)
-scanner = NetworkScanner(audit_logger=audit)
-risk_engine = RiskEngine(audit_logger=audit)
+audit          = AuditLogger()
+inventory      = CertificateInventory(audit_logger=audit)
+scanner        = NetworkScanner(audit_logger=audit)
+risk_engine    = RiskEngine(audit_logger=audit)
 report_manager = ReportManager(audit_logger=audit)
-threat = ThreatModel()
-agent = AutonomousAgent(risk_engine, audit)
-notifier = Notifier(audit)
-scheduler = Scheduler(inventory, scanner, risk_engine, report_manager, audit, agent, notifier)
-
+threat         = ThreatModel()
+agent          = AutonomousAgent(risk_engine, audit)
+notifier       = Notifier(audit)
+scheduler      = Scheduler(inventory, scanner, risk_engine, report_manager, audit, agent, notifier)
 
 app = Flask(__name__)
-app.secret_key = os.getenv('PKI_FLASK_SECRET', 'pki-agentic-dev-key')
-
+# Use FLASK_SECRET from config (reads PKI_FLASK_SECRET env var).
+# On Vercel set PKI_FLASK_SECRET in the dashboard — never commit a real secret.
+app.secret_key = FLASK_SECRET
 
 # -- helpers ------------------------------------------------------------------
 
 def _dashboard_context():
-    certs = inventory.load_inventory()
-    alerts = risk_engine.evaluate_certificate_inventory(certs)
+    certs       = inventory.load_inventory()
+    alerts      = risk_engine.evaluate_certificate_inventory(certs)
     scan_results = scanner.load_last_scan()
-    scan_alerts = risk_engine.evaluate_scan(scan_results)
-    # run Bumblebee (best-effort) and surface findings
+    scan_alerts  = risk_engine.evaluate_scan(scan_results)
+
     supply_findings = []
     try:
         supply_findings = supply_chain_module.run_bumblebee()
@@ -61,21 +61,23 @@ def _dashboard_context():
             supply_chain_module.persist_findings(supply_findings)
     except Exception:
         supply_findings = supply_chain_module.load_persisted()
+
     decisions = agent.decide(certs, scan_results, supply_findings)
+
     return {
-        'certs': certs,
-        'alerts': alerts,
-        'scan_alerts': scan_alerts,
-        'decisions': decisions,
-        'scan_meta': scanner.last_meta,
-        'scan_results': scan_results,
-        'supply_findings': supply_findings,
-        'summary': threat.summary(),
-        'expiry_threshold': EXPIRY_THRESHOLD_DAYS,
+        'certs':              certs,
+        'alerts':             alerts,
+        'scan_alerts':        scan_alerts,
+        'decisions':          decisions,
+        'scan_meta':          scanner.last_meta,
+        'scan_results':       scan_results,
+        'supply_findings':    supply_findings,
+        'summary':            threat.summary(),
+        'expiry_threshold':   EXPIRY_THRESHOLD_DAYS,
         'critical_threshold': CRITICAL_EXPIRY_DAYS,
-        'scan_range': (SCAN_PORT_START, SCAN_PORT_END),
-        'hsm_vendor': HSM_VENDOR,
-        'allowed_port': ALLOWED_PORT,
+        'scan_range':         (SCAN_PORT_START, SCAN_PORT_END),
+        'hsm_vendor':         HSM_VENDOR,
+        'allowed_port':       ALLOWED_PORT,
     }
 
 
@@ -85,7 +87,6 @@ def _severity_counts(records, key='severity'):
         sev = getattr(r, key, 'low')
         counts[sev] = counts.get(sev, 0) + 1
     return counts
-
 
 # -- pages --------------------------------------------------------------------
 
@@ -97,7 +98,7 @@ def dashboard():
         [c for c in ctx['certs'] if 0 < c.days_remaining <= EXPIRY_THRESHOLD_DAYS],
         key=lambda c: c.days_remaining,
     )
-    ctx['expired'] = [c for c in ctx['certs'] if c.days_remaining <= 0]
+    ctx['expired']           = [c for c in ctx['certs'] if c.days_remaining <= 0]
     ctx['quantum_vulnerable'] = [c for c in ctx['certs'] if c.quantum_score >= 70]
     return render_template('dashboard.html', **ctx)
 
@@ -114,7 +115,7 @@ def ports():
         host = request.form.get('host', '127.0.0.1').strip() or '127.0.0.1'
         try:
             start = int(request.form.get('start_port', SCAN_PORT_START))
-            end = int(request.form.get('end_port', SCAN_PORT_END))
+            end   = int(request.form.get('end_port',   SCAN_PORT_END))
         except ValueError:
             start, end = SCAN_PORT_START, SCAN_PORT_END
         engine = request.form.get('engine', 'auto')
@@ -122,6 +123,7 @@ def ports():
         report_manager.generate_firewall_report(scanner.load_last_scan())
         flash(f'Scan complete: {scanner.last_meta.get("total", 0)} reportable ports.', 'success')
         return redirect(url_for('ports'))
+
     ctx = _dashboard_context()
     ctx['suspicious'] = scanner.suspicious_findings()
     return render_template('ports.html', **ctx)
@@ -131,10 +133,7 @@ def ports():
 def threat_page():
     certs = inventory.load_inventory()
     scored = [
-        {
-            'cert': c,
-            'score': threat.score_certificate(c.key_algorithm, c.key_size),
-        }
+        {'cert': c, 'score': threat.score_certificate(c.key_algorithm, c.key_size)}
         for c in certs
     ]
     return render_template(
@@ -153,26 +152,24 @@ def hsm_page():
         info.update(client.health())
     except HSMIntegrationError as exc:
         info['status'] = 'unreachable'
-        info['error'] = str(exc)
+        info['error']  = str(exc)
     return render_template('hsm.html', hsm=info, hsm_vendor=HSM_VENDOR)
 
 
 @app.route('/compliance')
 def compliance_page():
-    certs = inventory.load_inventory()
-    scans = scanner.load_last_scan()
+    certs           = inventory.load_inventory()
+    scans           = scanner.load_last_scan()
     supply_findings = supply_chain_module.load_persisted()
-    verdicts = aggregate_compliance(certs, scans, supply_findings)
+    verdicts        = aggregate_compliance(certs, scans, supply_findings)
     return render_template('compliance.html', verdicts=verdicts, frameworks=FRAMEWORK_CONTROLS)
 
 
 @app.route('/supply-chain')
 def supply_chain():
-    # show persisted findings (the UI triggers Bumblebee in dashboard context
-    # on a best-effort basis; here we surface persisted findings and mapped compliance)
-    findings = supply_chain_module.load_persisted()
-    certs = inventory.load_inventory()
-    scans = scanner.load_last_scan()
+    findings   = supply_chain_module.load_persisted()
+    certs      = inventory.load_inventory()
+    scans      = scanner.load_last_scan()
     compliance = aggregate_compliance(certs, scans, findings)
     return render_template('supply_chain.html', supply_findings=findings, compliance=compliance)
 
@@ -189,12 +186,11 @@ def reports():
 
 @app.route('/reports/<path:filename>')
 def reports_download(filename: str):
-    safe_path = Path(filename).name  # prevent traversal
+    safe_path = Path(filename).name  # prevent path traversal
     full = REPORT_DIR / safe_path
     if not full.exists():
         abort(404)
     return send_from_directory(str(REPORT_DIR), safe_path, as_attachment=True)
-
 
 # -- actions ------------------------------------------------------------------
 
@@ -206,12 +202,18 @@ def action_generate_expiry():
     return redirect(request.referrer or url_for('reports'))
 
 
-@app.route('/actions/run-agent', methods=['POST'])
+@app.route('/actions/run-agent', methods=['GET', 'POST'])
 def action_run_agent():
-    certs = inventory.load_inventory()
+    """Supports both POST (web UI button) and GET (Vercel Cron job)."""
+    certs           = inventory.load_inventory()
     supply_findings = supply_chain_module.load_persisted()
-    decisions = agent.decide(certs, scanner.load_last_scan(), supply_findings)
+    decisions       = agent.decide(certs, scanner.load_last_scan(), supply_findings)
     report_manager.generate_agent_decisions_report(decisions)
+
+    if request.method == 'GET':
+        # Called by Vercel Cron — return JSON instead of redirect
+        return jsonify({'decisions': len(decisions), 'status': 'ok'})
+
     flash(f'Agent emitted {len(decisions)} decisions.', 'success')
     return redirect(request.referrer or url_for('dashboard'))
 
@@ -226,23 +228,22 @@ def action_refresh_inventory():
         flash('No hosts configured in data/hosts.json — using local inventory.', 'info')
     return redirect(request.referrer or url_for('certificates'))
 
-
 # -- JSON API -----------------------------------------------------------------
 
 @app.route('/api/status')
 def api_status():
     ctx = _dashboard_context()
     return jsonify({
-        'timestamp': datetime.utcnow().isoformat() + 'Z',
-        'certificate_count': len(ctx['certs']),
+        'timestamp':               datetime.utcnow().isoformat() + 'Z',
+        'certificate_count':       len(ctx['certs']),
         'expiring_within_threshold': sum(
             1 for c in ctx['certs'] if 0 < c.days_remaining <= EXPIRY_THRESHOLD_DAYS
         ),
-        'expired': sum(1 for c in ctx['certs'] if c.days_remaining <= 0),
+        'expired':            sum(1 for c in ctx['certs'] if c.days_remaining <= 0),
         'quantum_vulnerable': sum(1 for c in ctx['certs'] if c.quantum_score >= 70),
-        'critical_alerts': [a.to_dict() for a in ctx['alerts'] if a.severity == 'critical'],
-        'scan_meta': scanner.last_meta,
-        'decisions_pending': sum(1 for d in ctx['decisions'] if not d.automated),
+        'critical_alerts':    [a.to_dict() for a in ctx['alerts'] if a.severity == 'critical'],
+        'scan_meta':          scanner.last_meta,
+        'decisions_pending':  sum(1 for d in ctx['decisions'] if not d.automated),
     })
 
 
@@ -254,7 +255,7 @@ def api_certificates():
 @app.route('/api/ports')
 def api_ports():
     return jsonify({
-        'meta': scanner.last_meta,
+        'meta':    scanner.last_meta,
         'results': [r.to_dict() for r in scanner.load_last_scan()],
     })
 
@@ -270,14 +271,10 @@ def api_decisions():
 def api_threat_score(algorithm: str, key_size: int):
     return jsonify(threat.score_certificate(algorithm, key_size))
 
-
 # -- bootstrap ----------------------------------------------------------------
 
 def _start_background():
-    # Skip the scheduler when running serverless (Vercel / Lambda) — there
-    # are no long-lived threads in those runtimes; trigger cycles via the
-    # /actions/run-agent endpoint (e.g. Vercel Cron) instead.
-    from pki_agent.config import IS_SERVERLESS
+    """Start the in-process scheduler only in long-lived (non-serverless) environments."""
     if IS_SERVERLESS or os.getenv('PKI_NO_SCHEDULER') == '1':
         return
     scheduler.start()
@@ -285,6 +282,10 @@ def _start_background():
 
 _start_background()
 
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', '5000')), debug=True, use_reloader=False)
+    app.run(
+        host='0.0.0.0',
+        port=int(os.getenv('PORT', '5000')),
+        debug=True,
+        use_reloader=False,
+    )

@@ -1,9 +1,9 @@
 flask>=3.0
 cryptography>=42.0
 pyOpenSSL>=24.0
-python-nmap>=0.7.1
 requests>=2.31
-schedule>=1.2
 reportlab>=4.1
 jinja2>=3.1
 python-dateutil>=2.8
+schedule>=1.2
+# python-nmap>=0.7.1  # Requires nmap binary — not available on Vercel; socket fallback is used automatically
